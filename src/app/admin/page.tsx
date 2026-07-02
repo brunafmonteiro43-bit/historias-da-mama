@@ -1,7 +1,15 @@
-import { BookOpen, KeyRound, LayoutDashboard, Settings, Tags, UserRound } from 'lucide-react';
+import { BookOpen, KeyRound, LayoutDashboard, Settings, Tags, UserRound, type LucideIcon } from 'lucide-react';
 import { AdminStoryForm } from '@/components/admin-story-form';
 
 export const metadata = { title: 'Painel administrativo' };
+
+const adminSections: Array<{ icon: LucideIcon; title: string }> = [
+  { icon: LayoutDashboard, title: 'Dashboard' },
+  { icon: BookOpen, title: 'Histórias' },
+  { icon: Tags, title: 'Categorias' },
+  { icon: UserRound, title: 'Autores' },
+  { icon: Settings, title: 'Configurações' },
+];
 
 export default function Admin() {
   return (
@@ -38,16 +46,10 @@ export default function Admin() {
       </section>
 
       <section className="mt-10 grid gap-5 md:grid-cols-5">
-        {[
-          [LayoutDashboard, 'Dashboard'],
-          [BookOpen, 'Histórias'],
-          [Tags, 'Categorias'],
-          [UserRound, 'Autores'],
-          [Settings, 'Configurações'],
-        ].map(([Icon, title]) => (
-          <button className="rounded-3xl bg-white p-6 text-left font-black shadow-soft" key={String(title)} type="button">
+        {adminSections.map(({ icon: Icon, title }) => (
+          <button className="rounded-3xl bg-white p-6 text-left font-black shadow-soft" key={title} type="button">
             <Icon className="mb-3 h-7 w-7" />
-            {String(title)}
+            {title}
           </button>
         ))}
       </section>

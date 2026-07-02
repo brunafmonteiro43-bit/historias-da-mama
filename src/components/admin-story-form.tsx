@@ -1,6 +1,5 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { ImagePlus, Layers3, Save, Trash2, UploadCloud } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -21,7 +20,6 @@ type StoryFormValues = z.infer<typeof storySchema>;
 
 export function AdminStoryForm() {
   const form = useForm<StoryFormValues>({
-    resolver: zodResolver(storySchema),
     defaultValues: {
       title: '',
       description: '',
