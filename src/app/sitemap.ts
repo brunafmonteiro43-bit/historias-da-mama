@@ -1,0 +1,1 @@
+import { stories } from '@/data/stories';import { siteUrl } from '@/lib/utils';export default function sitemap(){return[{url:siteUrl,lastModified:new Date()},{url:`${siteUrl}/biblioteca`,lastModified:new Date()},...stories.map(s=>({url:`${siteUrl}/historias/${s.slug}`,lastModified:new Date()}))]}
