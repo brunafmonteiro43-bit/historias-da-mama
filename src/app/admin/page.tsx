@@ -1,3 +1,67 @@
-import { BookOpen, LayoutDashboard, MessageCircle, Settings, Tags, UserRound } from 'lucide-react';
-export const metadata={title:'Painel administrativo'};
-export default function Admin(){return <main className="mx-auto max-w-7xl px-5 py-12"><h1 className="text-5xl font-black">Painel administrativo</h1><p className="mt-3 text-lg">Gerencie histórias sem editar código.</p><div className="mt-8 grid gap-5 md:grid-cols-6">{[[LayoutDashboard,'Dashboard'],[BookOpen,'Histórias'],[Tags,'Categorias'],[UserRound,'Autores'],[MessageCircle,'Comentários'],[Settings,'Configurações']].map(([I,t]:any)=><button className="rounded-3xl bg-white p-6 text-left font-black shadow-soft" key={t}><I className="mb-3 h-7 w-7"/>{t}</button>)}</div><form className="mt-10 grid gap-5 rounded-[2rem] bg-white p-8 shadow-soft"><h2 className="text-3xl font-black">Cadastrar nova história</h2>{['Título','Descrição','Autor','Categoria','Faixa etária','Tempo de leitura'].map(f=><label className="font-bold" key={f}>{f}<input className="mt-2 w-full rounded-2xl border p-3" placeholder={f}/></label>)}<div className="grid gap-4 md:grid-cols-3"><label className="rounded-3xl border-2 border-dashed p-6">Imagem da capa<input type="file" accept="image/png,image/jpeg,image/webp"/></label><label className="rounded-3xl border-2 border-dashed p-6">PDF/DOCX<input type="file" accept=".pdf,.docx"/></label><label className="rounded-3xl border-2 border-dashed p-6">Imagens<input type="file" multiple accept="image/png,image/jpeg,image/webp"/></label></div><div className="flex flex-wrap gap-3"><button className="rounded-full bg-ink px-6 py-3 font-bold text-white">Publicar</button><button className="rounded-full bg-sun px-6 py-3 font-bold">Salvar rascunho</button><button className="rounded-full bg-aqua px-6 py-3 font-bold">Atualizar</button><button className="rounded-full bg-rose px-6 py-3 font-bold">Excluir</button></div></form></main>}
+import { BookOpen, KeyRound, LayoutDashboard, Settings, Tags, UserRound } from 'lucide-react';
+import { AdminStoryForm } from '@/components/admin-story-form';
+
+export const metadata = { title: 'Painel administrativo' };
+
+export default function Admin() {
+  return (
+    <main className="mx-auto max-w-7xl px-5 py-12">
+      <section className="grid gap-8 rounded-[2.5rem] bg-gradient-to-br from-lilac/70 to-skyPastel/70 p-6 shadow-soft md:grid-cols-[1fr_.8fr] md:p-10">
+        <div>
+          <p className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.2em] text-violet-600">
+            Acesso privado
+          </p>
+          <h1 className="mt-5 text-5xl font-black">Painel administrativo</h1>
+          <p className="mt-4 max-w-2xl text-lg">
+            Área exclusiva para a pessoa responsável cadastrar, editar, publicar e excluir histórias. Leitores e visitantes não precisam criar conta.
+          </p>
+        </div>
+
+        <form className="rounded-[2rem] bg-white p-6 shadow-soft" aria-label="Login do administrador">
+          <KeyRound className="h-8 w-8 text-violet-600" />
+          <h2 className="mt-3 text-2xl font-black">Entrar como administrador</h2>
+          <label className="mt-5 grid gap-2 font-bold">
+            E-mail
+            <input className="rounded-2xl border p-3" placeholder="admin@historiasdamama.com" type="email" />
+          </label>
+          <label className="mt-4 grid gap-2 font-bold">
+            Senha
+            <input className="rounded-2xl border p-3" placeholder="••••••••" type="password" />
+          </label>
+          <button className="mt-5 w-full rounded-full bg-ink px-6 py-3 font-bold text-white" type="button">
+            Acessar painel
+          </button>
+          <a className="mt-3 block text-center text-sm font-bold text-violet-700" href="#recuperar-senha">
+            Recuperar senha
+          </a>
+        </form>
+      </section>
+
+      <section className="mt-10 grid gap-5 md:grid-cols-5">
+        {[
+          [LayoutDashboard, 'Dashboard'],
+          [BookOpen, 'Histórias'],
+          [Tags, 'Categorias'],
+          [UserRound, 'Autores'],
+          [Settings, 'Configurações'],
+        ].map(([Icon, title]) => (
+          <button className="rounded-3xl bg-white p-6 text-left font-black shadow-soft" key={String(title)} type="button">
+            <Icon className="mb-3 h-7 w-7" />
+            {String(title)}
+          </button>
+        ))}
+      </section>
+
+      <section className="my-10 rounded-3xl bg-white p-6 shadow-soft">
+        <h2 className="text-2xl font-black">Regras do acesso</h2>
+        <ul className="mt-3 grid gap-2 text-slate-700 md:grid-cols-3">
+          <li>✅ Visitantes leem tudo livremente.</li>
+          <li>✅ Apenas administradores fazem login.</li>
+          <li>✅ Sem perfis, comentários ou favoritos de leitores.</li>
+        </ul>
+      </section>
+
+      <AdminStoryForm />
+    </main>
+  );
+}
