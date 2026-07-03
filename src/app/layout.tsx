@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Logo } from '@/components/logo';
+import { SiteChrome } from '@/components/site-chrome';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,24 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body>
-        <header className="sticky top-0 z-40 border-b border-white/60 bg-white/80 backdrop-blur dark:bg-slate-950/80">
-          <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-            <Logo />
-            <div className="hidden gap-6 font-bold md:flex">
-              <a href="/biblioteca">Biblioteca</a>
-              <a href="/admin">Admin</a>
-              <a href="/#sobre">Sobre</a>
-            </div>
-          </nav>
-        </header>
-        {children}
-        <footer className="mt-20 bg-ink px-5 py-12 text-white">
-          <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
-            <Logo />
-            <p>Biblioteca encantada para famílias, escolas e profissionais.</p>
-            <p>© 2026 Histórias da Mamá</p>
-          </div>
-        </footer>
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   );

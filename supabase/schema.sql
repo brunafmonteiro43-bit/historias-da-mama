@@ -9,7 +9,7 @@ create table public.admins (
 
 create table public.authors (
   id uuid primary key default gen_random_uuid(),
-  name text not null,
+  name text not null unique,
   bio text,
   avatar_url text,
   created_at timestamptz default now()
@@ -54,10 +54,15 @@ create table public.story_pages (
 create or replace function public.is_admin()
 returns boolean
 language sql
+security definer
+set search_path = public
 stable
 as $$
   select exists (select 1 from public.admins where user_id = auth.uid());
 $$;
+
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to anon, authenticated;
 
 alter table public.admins enable row level security;
 alter table public.authors enable row level security;
@@ -65,7 +70,8 @@ alter table public.categories enable row level security;
 alter table public.stories enable row level security;
 alter table public.story_pages enable row level security;
 
-create policy "Admins can manage admins" on public.admins for all using (public.is_admin()) with check (public.is_admin());
+create policy "Admins can read admin records" on public.admins for select using (public.is_admin());
+create policy "Admins can manage admin records" on public.admins for all using (public.is_admin()) with check (public.is_admin());
 create policy "Public can read authors" on public.authors for select using (true);
 create policy "Admins can manage authors" on public.authors for all using (public.is_admin()) with check (public.is_admin());
 create policy "Public can read categories" on public.categories for select using (true);
@@ -85,10 +91,36 @@ values (
   52428800,
   array[
     'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'image/png',
     'image/jpeg',
     'image/webp'
   ]
 )
 on conflict (id) do nothing;
+
+create policy "Public can read story files" on storage.objects
+for select using (bucket_id = 'stories');
+
+create policy "Admins can upload story files" on storage.objects
+for insert with check (bucket_id = 'stories' and public.is_admin());
+
+create policy "Admins can update story files" on storage.objects
+for update using (bucket_id = 'stories' and public.is_admin()) with check (bucket_id = 'stories' and public.is_admin());
+
+create policy "Admins can delete story files" on storage.objects
+for delete using (bucket_id = 'stories' and public.is_admin());
+
+insert into public.categories (name, slug, description)
+values
+  ('Aventura', 'aventura', 'Viagens, descobertas e coragem.'),
+  ('Fantasia', 'fantasia', 'Magia, castelos e mundos encantados.'),
+  ('Amizade', 'amizade', 'Empatia, respeito e convivência.'),
+  ('Natureza', 'natureza', 'Flores, jardins e cuidado com o planeta.'),
+  ('Inclusão', 'inclusao', 'Aceitação, autonomia e diversidade.')
+on conflict (slug) do update set
+  name = excluded.name,
+  description = excluded.description;
+
+insert into public.authors (name, bio)
+values ('Histórias da Mamá', 'Autoria principal da biblioteca Histórias da Mamá.')
+on conflict do nothing;

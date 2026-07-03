@@ -1,1 +1,12 @@
-import { stories } from '@/data/stories';import { siteUrl } from '@/lib/utils';export default function sitemap(){return[{url:siteUrl,lastModified:new Date()},{url:`${siteUrl}/biblioteca`,lastModified:new Date()},...stories.map(s=>({url:`${siteUrl}/historias/${s.slug}`,lastModified:new Date()}))]}
+import { publishedStories } from '@/data/stories';
+import { siteUrl } from '@/lib/utils';
+
+export default function sitemap() {
+  const lastModified = new Date();
+
+  return [
+    { lastModified, url: siteUrl },
+    { lastModified, url: `${siteUrl}/biblioteca` },
+    ...publishedStories.map((story) => ({ lastModified, url: `${siteUrl}/historias/${story.slug}` })),
+  ];
+}

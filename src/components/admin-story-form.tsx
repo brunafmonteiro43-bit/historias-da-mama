@@ -1,74 +1,221 @@
 'use client';
 
-import { ImagePlus, Layers3, Save, Trash2, UploadCloud } from 'lucide-react';
-import { useFieldArray, useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { categories, stories } from '@/data/stories';
+/* eslint-disable @next/next/no-img-element */
 
-const storySchema = z.object({
-  title: z.string().min(3, 'Informe o título da história.'),
-  description: z.string().min(10, 'Escreva uma descrição simples.'),
-  author: z.string().min(2, 'Informe o autor.'),
-  category: z.string().min(1, 'Escolha uma categoria.'),
-  ageRange: z.string().min(1, 'Informe a idade indicada.'),
-  readingTime: z.string().min(1, 'Informe o tempo de leitura.'),
-  hasColoringVersion: z.boolean().default(false),
-  pages: z.array(z.object({ label: z.string() })).default([]),
-});
+import { ArrowDown, ArrowUp, CheckCircle2, FileText, GripVertical, ImagePlus, Layers3, UploadCloud } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { saveStoryAction } from '@/app/admin/(protected)/actions';
+import type { AdminCategorySummary, EditableStory } from '@/lib/admin-queries';
 
-type StoryFormValues = z.infer<typeof storySchema>;
+type AdminStoryFormProps = {
+  categories: AdminCategorySummary[];
+  story?: EditableStory;
+};
 
-export function AdminStoryForm() {
-  const form = useForm<StoryFormValues>({
-    defaultValues: {
-      title: '',
-      description: '',
-      author: 'Histórias da Mamá',
-      category: categories[0]?.name ?? '',
-      ageRange: '4 a 6 anos',
-      readingTime: '5 min',
-      hasColoringVersion: false,
-      pages: [{ label: 'Página 1' }, { label: 'Página 2' }],
-    },
-  });
+const steps = [
+  'Informações básicas',
+  'Capa e arquivos',
+  'Páginas da história',
+  'Publicação',
+];
 
-  const { fields, move, append, remove } = useFieldArray({ control: form.control, name: 'pages' });
+const imageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+const pdfTypes = ['application/pdf'];
+const imageLimit = 8 * 1024 * 1024;
+const pdfLimit = 50 * 1024 * 1024;
+
+function formatSize(size: number) {
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function fileError(file: File, kind: 'image' | 'pdf') {
+  const allowed = kind === 'image' ? imageTypes : pdfTypes;
+  const limit = kind === 'image' ? imageLimit : pdfLimit;
+  const label = kind === 'image' ? 'PNG, JPG ou WEBP' : 'PDF';
+
+  if (!allowed.includes(file.type)) {
+    return `${file.name}: use ${label}.`;
+  }
+
+  if (file.size > limit) {
+    return `${file.name}: tamanho máximo ${formatSize(limit)}.`;
+  }
+
+  return '';
+}
+
+export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [coverPreview, setCoverPreview] = useState('');
+  const [pagePreviews, setPagePreviews] = useState<string[]>([]);
+  const [pageTexts, setPageTexts] = useState<string[]>(story?.pages?.length ? story.pages : ['']);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const pagesInputRef = useRef<HTMLInputElement>(null);
+
+  const defaultCategory = story?.category ?? categories[0]?.name ?? 'Aventura';
+  const canGoBack = currentStep > 0;
+  const canGoNext = currentStep < steps.length - 1;
+
+  const stepSummary = useMemo(
+    () => [
+      'Título, descrição, autoria, categoria e faixa etária.',
+      'Capa vertical, PDF da história e imagens opcionais.',
+      'Textos das páginas e ordem de leitura.',
+      'Rascunho ou publicação para visitantes.',
+    ],
+    [],
+  );
+
+  function validateFiles(files: File[], kind: 'image' | 'pdf') {
+    const nextErrors = files.map((file) => fileError(file, kind)).filter(Boolean);
+    setErrors(nextErrors);
+    return nextErrors.length === 0;
+  }
+
+  function handleCover(files: FileList | null) {
+    const file = files?.[0];
+
+    if (!file || !validateFiles([file], 'image')) {
+      setCoverPreview('');
+      return;
+    }
+
+    setCoverPreview(URL.createObjectURL(file));
+  }
+
+  function handlePdf(files: FileList | null) {
+    const file = files?.[0];
+
+    if (file) {
+      validateFiles([file], 'pdf');
+    }
+  }
+
+  function handlePageImages(files: FileList | null) {
+    const nextFiles = Array.from(files ?? []);
+
+    if (!validateFiles(nextFiles, 'image')) {
+      setPagePreviews([]);
+      return;
+    }
+
+    setPagePreviews(nextFiles.map((file) => URL.createObjectURL(file)));
+  }
+
+  function addPage() {
+    setPageTexts((current) => [...current, '']);
+  }
+
+  function updatePage(index: number, value: string) {
+    setPageTexts((current) => current.map((page, pageIndex) => (pageIndex === index ? value : page)));
+  }
+
+  function removePage(index: number) {
+    setPageTexts((current) => current.filter((_, pageIndex) => pageIndex !== index));
+  }
+
+  function movePage(from: number, to: number) {
+    setPageTexts((current) => {
+      if (to < 0 || to >= current.length) {
+        return current;
+      }
+
+      const next = [...current];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
+  }
+
+  function handleDrop(index: number) {
+    if (draggedIndex === null || draggedIndex === index) {
+      return;
+    }
+
+    movePage(draggedIndex, index);
+    setDraggedIndex(null);
+  }
 
   return (
-    <section className="grid gap-8 lg:grid-cols-[1.3fr_.7fr]">
-      <form className="grid gap-5 rounded-[2rem] bg-white p-6 shadow-soft md:p-8" onSubmit={form.handleSubmit(() => undefined)}>
-        <div>
-          <p className="text-sm font-black uppercase tracking-[0.25em] text-violet-500">Formulário simples</p>
-          <h2 className="mt-2 text-3xl font-black">Cadastrar ou editar história</h2>
-          <p className="mt-2 text-slate-600">Preencha os campos principais, envie a capa e publique quando estiver pronto.</p>
-        </div>
+    <form action={saveStoryAction} className="grid gap-6 rounded-[2rem] bg-white p-6 shadow-soft md:p-8">
+      {story?.id ? <input name="id" type="hidden" value={story.id} /> : null}
 
-        <label className="grid gap-2 font-bold">
-          1. Título da história
-          <input className="rounded-2xl border p-3" placeholder="Ex.: O Pintinho Corajoso" {...form.register('title')} />
+      <div>
+        <p className="text-sm font-black uppercase tracking-[0.2em] text-violet-600">
+          {story ? 'Editar história' : 'Nova história'}
+        </p>
+        <h1 className="mt-2 text-4xl font-black text-ink">{story ? story.title : 'Cadastrar história'}</h1>
+        <p className="mt-2 max-w-2xl leading-7 text-slate-600">
+          Preencha as etapas, revise a publicação e salve. Visitantes só verão histórias marcadas como publicadas.
+        </p>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-4">
+        {steps.map((step, index) => (
+          <button
+            className={`rounded-2xl border px-4 py-3 text-left transition ${
+              index === currentStep ? 'border-violet-300 bg-lilac/45 shadow-sm' : 'border-slate-200 bg-white'
+            }`}
+            key={step}
+            onClick={() => setCurrentStep(index)}
+            type="button"
+          >
+            <span className="text-xs font-black uppercase tracking-[0.16em] text-violet-700">Etapa {index + 1}</span>
+            <strong className="mt-1 block text-ink">{step}</strong>
+            <span className="mt-1 block text-xs leading-5 text-slate-500">{stepSummary[index]}</span>
+          </button>
+        ))}
+      </div>
+
+      {errors.length > 0 ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose/35 p-4 text-sm font-bold text-rose-900" role="alert">
+          {errors.map((error) => (
+            <p key={error}>{error}</p>
+          ))}
+        </div>
+      ) : null}
+
+      <section className={currentStep === 0 ? 'grid gap-5' : 'hidden'}>
+        <label className="grid gap-2 text-sm font-black text-ink">
+          Título da história
+          <input
+            className="rounded-2xl border border-slate-200 px-4 py-3"
+            defaultValue={story?.title}
+            name="title"
+            placeholder="Ex.: O Chapéu do Leo"
+            required
+          />
         </label>
 
-        <label className="grid gap-2 font-bold">
-          2. Descrição
-          <textarea className="min-h-28 rounded-2xl border p-3" placeholder="Resumo curto para famílias e professores" {...form.register('description')} />
+        <label className="grid gap-2 text-sm font-black text-ink">
+          Descrição
+          <textarea
+            className="min-h-28 rounded-2xl border border-slate-200 px-4 py-3"
+            defaultValue={story?.description}
+            name="description"
+            placeholder="Resumo curto para famílias, professores e crianças"
+            required
+          />
         </label>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="grid gap-2 font-bold">
+          <label className="grid gap-2 text-sm font-black text-ink">
             Autor
-            <input className="rounded-2xl border p-3" {...form.register('author')} />
+            <input className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.author ?? 'Histórias da Mamá'} name="author" required />
           </label>
-          <label className="grid gap-2 font-bold">
-            3. Categoria
-            <select className="rounded-2xl border p-3" {...form.register('category')}>
+          <label className="grid gap-2 text-sm font-black text-ink">
+            Categoria
+            <select className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={defaultCategory} name="category">
               {categories.map((category) => (
-                <option key={category.name}>{category.name}</option>
+                <option key={category.id}>{category.name}</option>
               ))}
             </select>
           </label>
-          <label className="grid gap-2 font-bold">
-            4. Idade indicada
-            <select className="rounded-2xl border p-3" {...form.register('ageRange')}>
+          <label className="grid gap-2 text-sm font-black text-ink">
+            Idade indicada
+            <select className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.ageRange ?? '4 a 6 anos'} name="ageRange">
               <option>2 a 4 anos</option>
               <option>4 a 6 anos</option>
               <option>6 a 8 anos</option>
@@ -76,76 +223,181 @@ export function AdminStoryForm() {
               <option>10+ anos</option>
             </select>
           </label>
-          <label className="grid gap-2 font-bold">
-            Tempo de leitura
-            <input className="rounded-2xl border p-3" placeholder="5 min" {...form.register('readingTime')} />
+          <label className="grid gap-2 text-sm font-black text-ink">
+            Tempo de leitura em minutos
+            <input
+              className="rounded-2xl border border-slate-200 px-4 py-3"
+              defaultValue={story?.readingMinutes ?? 5}
+              max={60}
+              min={1}
+              name="readingMinutes"
+              required
+              type="number"
+            />
           </label>
         </div>
 
-        <label className="flex items-center gap-3 rounded-2xl bg-aqua/40 p-4 font-bold">
-          <input type="checkbox" className="h-5 w-5" {...form.register('hasColoringVersion')} />
+        <label className="flex items-center gap-3 rounded-2xl bg-aqua/45 p-4 text-sm font-black text-ink">
+          <input className="h-5 w-5" defaultChecked={story?.hasColoringVersion} name="hasColoringVersion" type="checkbox" />
           Esta história tem versão para colorir
         </label>
+      </section>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <label className="rounded-3xl border-2 border-dashed p-6 font-bold">
-            <ImagePlus className="mb-3 h-7 w-7" />
-            5. Capa
-            <input type="file" accept="image/png,image/jpeg,image/webp" className="mt-3 block text-sm" />
+      <section className={currentStep === 1 ? 'grid gap-5' : 'hidden'}>
+        <div className="grid gap-5 md:grid-cols-2">
+          <label
+            className="grid min-h-72 cursor-pointer place-items-center rounded-[2rem] border-2 border-dashed border-violet-200 bg-lilac/25 p-6 text-center"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const file = event.dataTransfer.files[0];
+              if (file && coverInputRef.current) {
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                coverInputRef.current.files = transfer.files;
+                handleCover(transfer.files);
+              }
+            }}
+          >
+            {coverPreview ? (
+              <img alt="Prévia da capa" className="h-60 rounded-2xl object-cover shadow-soft" src={coverPreview} />
+            ) : (
+              <span className="grid place-items-center gap-3 text-ink">
+                <ImagePlus className="h-10 w-10 text-violet-700" />
+                <strong>Capa da história</strong>
+                <small>Arraste ou selecione PNG, JPG ou WEBP até 8 MB.</small>
+              </span>
+            )}
+            <input
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              name="cover"
+              onChange={(event) => handleCover(event.target.files)}
+              ref={coverInputRef}
+              type="file"
+            />
           </label>
-          <label className="rounded-3xl border-2 border-dashed p-6 font-bold">
-            <UploadCloud className="mb-3 h-7 w-7" />
-            6. PDF ou DOCX
-            <input type="file" accept=".pdf,.docx" className="mt-3 block text-sm" />
-          </label>
-          <label className="rounded-3xl border-2 border-dashed p-6 font-bold">
-            <Layers3 className="mb-3 h-7 w-7" />
-            Imagens das páginas
-            <input type="file" multiple accept="image/png,image/jpeg,image/webp" className="mt-3 block text-sm" />
-          </label>
+
+          <div className="grid gap-4">
+            <label className="rounded-[2rem] border-2 border-dashed border-slate-200 bg-white p-6">
+              <UploadCloud className="h-9 w-9 text-violet-700" />
+              <strong className="mt-3 block text-ink">PDF da história</strong>
+              <span className="mt-1 block text-sm text-slate-600">Use PDF até 50 MB.</span>
+              <input accept="application/pdf" className="mt-4 block text-sm" name="storyPdf" onChange={(event) => handlePdf(event.target.files)} type="file" />
+            </label>
+
+            <label className="rounded-[2rem] border-2 border-dashed border-slate-200 bg-white p-6">
+              <Layers3 className="h-9 w-9 text-violet-700" />
+              <strong className="mt-3 block text-ink">Imagens das páginas</strong>
+              <span className="mt-1 block text-sm text-slate-600">PNG, JPG ou WEBP até 8 MB cada.</span>
+              <input
+                accept="image/png,image/jpeg,image/webp"
+                className="mt-4 block text-sm"
+                multiple
+                name="pageImages"
+                onChange={(event) => handlePageImages(event.target.files)}
+                ref={pagesInputRef}
+                type="file"
+              />
+            </label>
+          </div>
         </div>
 
-        <div className="rounded-3xl bg-slate-50 p-5">
-          <div className="flex items-center justify-between gap-4">
-            <h3 className="font-black">Organizar ordem das páginas</h3>
-            <button type="button" className="rounded-full bg-white px-4 py-2 font-bold" onClick={() => append({ label: `Página ${fields.length + 1}` })}>
-              Adicionar página
-            </button>
-          </div>
-          <div className="mt-4 grid gap-3">
-            {fields.map((field, index) => (
-              <div className="flex items-center justify-between rounded-2xl bg-white p-3" key={field.id}>
-                <span className="font-bold">{field.label}</span>
-                <div className="flex gap-2">
-                  <button type="button" className="rounded-full bg-slate-100 px-3 py-1" onClick={() => index > 0 && move(index, index - 1)}>↑</button>
-                  <button type="button" className="rounded-full bg-slate-100 px-3 py-1" onClick={() => index < fields.length - 1 && move(index, index + 1)}>↓</button>
-                  <button type="button" className="rounded-full bg-rose px-3 py-1" onClick={() => remove(index)}>Remover</button>
-                </div>
-              </div>
+        {pagePreviews.length > 0 ? (
+          <div className="grid gap-3 rounded-3xl bg-slate-50 p-4 sm:grid-cols-3">
+            {pagePreviews.map((preview, index) => (
+              <img alt={`Prévia da página ${index + 1}`} className="aspect-[3/4] rounded-2xl object-cover shadow-sm" key={preview} src={preview} />
             ))}
           </div>
+        ) : null}
+      </section>
+
+      <section className={currentStep === 2 ? 'grid gap-4' : 'hidden'}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-black text-ink">Páginas da história</h2>
+            <p className="text-sm text-slate-600">Arraste os blocos para reorganizar a leitura.</p>
+          </div>
+          <button className="rounded-full bg-slate-100 px-4 py-2 font-black text-ink" onClick={addPage} type="button">
+            Adicionar página
+          </button>
         </div>
 
+        {pageTexts.map((page, index) => (
+          <article
+            className="rounded-3xl border border-slate-200 bg-white p-4"
+            draggable
+            key={`${index}-${page.slice(0, 12)}`}
+            onDragEnd={() => setDraggedIndex(null)}
+            onDragOver={(event) => event.preventDefault()}
+            onDragStart={() => setDraggedIndex(index)}
+            onDrop={() => handleDrop(index)}
+          >
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <strong className="inline-flex items-center gap-2 text-ink">
+                <GripVertical className="h-5 w-5 text-slate-400" />
+                Página {index + 1}
+              </strong>
+              <div className="flex gap-2">
+                <button className="rounded-full bg-slate-100 p-2" onClick={() => movePage(index, index - 1)} title="Subir página" type="button">
+                  <ArrowUp className="h-4 w-4" />
+                </button>
+                <button className="rounded-full bg-slate-100 p-2" onClick={() => movePage(index, index + 1)} title="Descer página" type="button">
+                  <ArrowDown className="h-4 w-4" />
+                </button>
+                <button className="rounded-full bg-rose/70 px-3 py-2 text-sm font-black" onClick={() => removePage(index)} type="button">
+                  Remover
+                </button>
+              </div>
+            </div>
+            <textarea
+              className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3"
+              name="pageText"
+              onChange={(event) => updatePage(index, event.target.value)}
+              placeholder="Texto da página"
+              value={page}
+            />
+          </article>
+        ))}
+      </section>
+
+      <section className={currentStep === 3 ? 'grid gap-5' : 'hidden'}>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="rounded-3xl border border-slate-200 p-5">
+            <span className="flex items-center gap-2 font-black text-ink">
+              <FileText className="h-5 w-5" />
+              Salvar como rascunho
+            </span>
+            <p className="mt-2 text-sm leading-6 text-slate-600">A história fica guardada no painel e não aparece para visitantes.</p>
+            <input className="mt-4 h-5 w-5" defaultChecked={story?.status !== 'published'} name="status" type="radio" value="draft" />
+          </label>
+          <label className="rounded-3xl border border-slate-200 p-5">
+            <span className="flex items-center gap-2 font-black text-ink">
+              <CheckCircle2 className="h-5 w-5" />
+              Publicar agora
+            </span>
+            <p className="mt-2 text-sm leading-6 text-slate-600">A história aparece na biblioteca pública após salvar.</p>
+            <input className="mt-4 h-5 w-5" defaultChecked={story?.status === 'published'} name="status" type="radio" value="published" />
+          </label>
+        </div>
+      </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
+        <button className="rounded-full bg-slate-100 px-5 py-3 font-black text-ink disabled:opacity-50" disabled={!canGoBack} onClick={() => setCurrentStep((step) => step - 1)} type="button">
+          Voltar
+        </button>
         <div className="flex flex-wrap gap-3">
-          <button className="rounded-full bg-ink px-6 py-3 font-bold text-white" type="submit">7. Publicar</button>
-          <button className="rounded-full bg-sun px-6 py-3 font-bold" type="button"><Save className="mr-2 inline h-4 w-4" />Salvar rascunho</button>
-          <button className="rounded-full bg-aqua px-6 py-3 font-bold" type="button">Publicar / despublicar</button>
-          <button className="rounded-full bg-rose px-6 py-3 font-bold" type="button"><Trash2 className="mr-2 inline h-4 w-4" />Excluir</button>
-        </div>
-      </form>
-
-      <aside className="rounded-[2rem] bg-white p-6 shadow-soft">
-        <h2 className="text-2xl font-black">Histórias existentes</h2>
-        <p className="mt-2 text-sm text-slate-600">Selecione uma história para editar, publicar, despublicar ou excluir.</p>
-        <div className="mt-5 grid gap-3">
-          {stories.map((story) => (
-            <button className="rounded-2xl border p-4 text-left hover:bg-slate-50" key={story.slug} type="button">
-              <strong>{story.title}</strong>
-              <span className="mt-1 block text-sm text-slate-500">{story.status === 'published' ? 'Publicado' : 'Rascunho'} • {story.category}</span>
+          {canGoNext ? (
+            <button className="rounded-full bg-ink px-6 py-3 font-black text-white" onClick={() => setCurrentStep((step) => step + 1)} type="button">
+              Próxima etapa
             </button>
-          ))}
+          ) : (
+            <button className="rounded-full bg-ink px-6 py-3 font-black text-white shadow-soft" type="submit">
+              Salvar história
+            </button>
+          )}
         </div>
-      </aside>
-    </section>
+      </div>
+    </form>
   );
 }

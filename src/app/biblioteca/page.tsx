@@ -1,3 +1,8 @@
-import { StoryCard } from '@/components/story-card';import { categories, stories } from '@/data/stories';
-export const metadata={title:'Biblioteca'};
-export default function Biblioteca(){return <main className="mx-auto max-w-7xl px-5 py-12"><h1 className="text-5xl font-black">Biblioteca</h1><div className="mt-6 grid gap-3 rounded-[2rem] bg-white p-5 shadow-soft md:grid-cols-6"><input aria-label="Busca instantânea" placeholder="Buscar histórias..." className="rounded-2xl border p-3 md:col-span-2"/><select aria-label="Categoria" className="rounded-2xl border p-3"><option>Categoria</option>{categories.map(c=><option key={c.name}>{c.name}</option>)}</select><select aria-label="Faixa etária" className="rounded-2xl border p-3"><option>Faixa etária</option><option>4 a 6 anos</option><option>6 a 8 anos</option></select><select aria-label="Tempo" className="rounded-2xl border p-3"><option>Tempo de leitura</option><option>Até 5 min</option></select><select aria-label="Ordenação" className="rounded-2xl border p-3"><option>Mais populares</option><option>Mais novas</option></select></div><div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">{stories.map(story=><StoryCard key={story.slug} story={story}/>)}</div></main>}
+import { categories, publishedStories } from '@/data/stories';
+import { LibraryClient } from './library-client';
+
+export const metadata = { title: 'Biblioteca' };
+
+export default function BibliotecaPage() {
+  return <LibraryClient categories={categories} stories={publishedStories} />;
+}
