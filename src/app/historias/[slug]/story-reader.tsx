@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, Maximize, Minus, Plus, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
+import { ShareButton } from '@/components/share-button';
 import type { Story } from '@/types';
 
 export function StoryReader({ story }: { story: Story }) {
@@ -25,9 +26,19 @@ export function StoryReader({ story }: { story: Story }) {
     <main>
       <section className="px-5 py-12" style={{ background: story.color }}>
         <div className="mx-auto max-w-7xl">
-          <Link className="inline-flex rounded-full bg-white/80 px-4 py-2 font-black text-ink shadow-sm" href="/biblioteca">
-            Voltar para biblioteca
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link className="inline-flex rounded-full bg-white/80 px-4 py-2 font-black text-ink shadow-sm" href="/biblioteca">
+              Voltar para biblioteca
+            </Link>
+            <ShareButton
+              className="h-auto w-auto bg-white/80 px-4 py-2 shadow-sm hover:bg-white"
+              menuAlign="left"
+              menuPlacement="bottom"
+              showLabel
+              storySlug={story.slug}
+              storyTitle={story.title}
+            />
+          </div>
           <p className="mt-8 font-black text-ink/75">
             {story.category} · {story.ageRange} · {story.readingTime}
           </p>
@@ -58,6 +69,11 @@ export function StoryReader({ story }: { story: Story }) {
             <button className="rounded-full bg-ink p-3 text-white shadow-sm" onClick={openFullscreen} title="Tela cheia" type="button">
               <Maximize className="h-5 w-5" />
             </button>
+            <ShareButton
+              className="bg-ink text-white shadow-sm hover:bg-slate-800 focus:ring-violet-200"
+              storySlug={story.slug}
+              storyTitle={story.title}
+            />
           </div>
         </div>
 

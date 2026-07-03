@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { SiteChrome } from '@/components/site-chrome';
+import { ToastProvider } from '@/components/ui/toast';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,7 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body>
-        <SiteChrome>{children}</SiteChrome>
+        <ToastProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </ToastProvider>
       </body>
     </html>
   );

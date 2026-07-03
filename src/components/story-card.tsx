@@ -1,5 +1,6 @@
-import { BookOpen, Clock, Share2, Sparkles } from 'lucide-react';
+import { BookOpen, Clock, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { ShareButton } from '@/components/share-button';
 import type { Story } from '@/types';
 
 type StoryCardProps = {
@@ -48,13 +49,7 @@ export function StoryCard({ story }: StoryCardProps) {
           >
             Ler agora
           </Link>
-          <button
-            aria-label={`Compartilhar ${story.title}`}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-ink transition hover:bg-sun"
-            type="button"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
+          <ShareButton storySlug={story.slug} storyTitle={story.title} />
         </div>
       </div>
     </article>
