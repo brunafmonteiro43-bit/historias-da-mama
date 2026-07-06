@@ -1,8 +1,11 @@
 'use client';
 
+import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from './logo';
+
+const shell = 'mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8';
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,51 +17,60 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-lilac/25 bg-white/88 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+      <header className="sticky top-0 z-40 border-b border-lilac/20 bg-white/92 backdrop-blur-xl">
+        <nav className={`${shell} flex h-[70px] items-center justify-between gap-4`}>
           <Logo />
-          <div className="hidden items-center gap-6 font-bold text-plum md:flex">
+          <div className="hidden items-center gap-7 text-sm font-black text-plum md:flex">
             <Link className="transition hover:text-coral" href="/biblioteca">
-              Biblioteca
+              Histórias
+            </Link>
+            <Link className="transition hover:text-coral" href="/#categorias">
+              Categorias
             </Link>
             <Link className="transition hover:text-coral" href="/#sobre">
               Sobre
             </Link>
-            <Link className="rounded-full bg-plum px-4 py-2 text-white shadow-sm transition hover:bg-coral" href="/admin">
-              Admin
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              aria-label="Buscar histórias"
+              className="grid h-10 w-10 place-items-center rounded-full bg-white text-plum shadow-sm ring-1 ring-lilac/15 transition hover:text-coral"
+              href="/biblioteca"
+            >
+              <Search className="h-5 w-5" />
+            </Link>
+            <Link className="hidden rounded-full bg-plum px-5 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-coral sm:inline-flex" href="/biblioteca">
+              Começar a ler
             </Link>
           </div>
         </nav>
       </header>
       {children}
-      <footer className="mt-20 overflow-hidden bg-plum px-5 py-14 text-white">
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1fr_.8fr_.8fr]">
+      <footer className="overflow-hidden bg-[#2f185f] px-5 py-12 text-white">
+        <div className="mx-auto grid w-full max-w-[1200px] gap-9 md:grid-cols-[1.2fr_1fr] md:items-start">
           <div>
             <Logo tone="light" />
-            <p className="mt-4 max-w-sm leading-7 text-white/75">
-              Biblioteca infantil premium para imaginar, aprender e se encantar em família, escolas e espaços terapêuticos.
+            <p className="mt-4 max-w-md leading-7 text-white/75">
+              Histórias infantis para imaginar, aprender e se encantar em família.
             </p>
           </div>
-          <div>
-            <h2 className="font-black">Explorar</h2>
-            <div className="mt-4 grid gap-3 text-white/75">
-              <Link href="/biblioteca">Biblioteca</Link>
-              <Link href="/#destaques">Destaques</Link>
-              <Link href="/#categorias">Categorias</Link>
-            </div>
-          </div>
-          <div>
-            <h2 className="font-black">Contato e segurança</h2>
-            <div className="mt-4 grid gap-3 text-white/75">
-              <Link href="/admin">Área administrativa</Link>
-              <Link href="/privacidade">Política de privacidade</Link>
-              <Link href="/termos">Termos de uso</Link>
-              <span>contato@historiasdamama.com</span>
-            </div>
-            <Link className="mt-5 inline-flex rounded-full bg-white px-5 py-3 font-black text-plum" href="/admin">
-              Área administrativa
+          <nav className="grid gap-3 text-white/78 sm:grid-cols-2">
+            <Link className="transition hover:text-white" href="/biblioteca">
+              Histórias
             </Link>
-          </div>
+            <Link className="transition hover:text-white" href="/#categorias">
+              Categorias
+            </Link>
+            <Link className="transition hover:text-white" href="/#sobre">
+              Sobre
+            </Link>
+            <Link className="transition hover:text-white" href="/privacidade">
+              Política de Privacidade
+            </Link>
+            <Link className="transition hover:text-white" href="/termos">
+              Termos de Uso
+            </Link>
+          </nav>
         </div>
       </footer>
     </>

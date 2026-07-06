@@ -13,13 +13,13 @@ export function Logo({ orientation = 'horizontal', tone = 'dark' }: LogoProps) {
   return (
     <Link
       aria-label="Histórias da Mamá"
-      className={orientation === 'vertical' ? 'inline-flex flex-col items-center gap-2 text-center' : 'flex items-center gap-3'}
+      className={orientation === 'vertical' ? 'inline-flex flex-col items-center gap-2 text-center' : 'flex items-center gap-2.5'}
       href="/"
     >
-      <BrandIllustration className={orientation === 'vertical' ? 'h-28 w-36' : 'h-14 w-16'} compact title="Logo Histórias da Mamá" />
+      <BrandIllustration className={orientation === 'vertical' ? 'h-28 w-36' : 'h-11 w-12'} compact title="Logo Histórias da Mamá" />
       <span className={orientation === 'vertical' ? '' : 'grid leading-none'}>
-        <span className={`font-display text-2xl font-black tracking-normal ${textColor}`}>Histórias</span>
-        <span className={`font-display text-xl font-black tracking-normal ${orientation === 'vertical' ? 'text-coral' : textColor}`}>
+        <span className={`font-display text-xl font-black tracking-normal ${textColor}`}>Histórias</span>
+        <span className={`font-display text-lg font-black tracking-normal ${orientation === 'vertical' ? 'text-coral' : textColor}`}>
           da Mamá
         </span>
         {orientation === 'vertical' ? (

@@ -62,7 +62,7 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
           <BrandIllustration className="hidden h-44 w-full lg:block" compact title="Símbolo da biblioteca Histórias da Mamá" />
         </div>
 
-        <div className="mt-7 grid gap-3 md:grid-cols-[1.4fr_.8fr_.8fr_.8fr]">
+        <div className="mt-7 grid gap-3 md:grid-cols-[1.4fr_.8fr_.8fr_.8fr]" id="categorias">
           <label className="relative">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-plum" />
             <input
