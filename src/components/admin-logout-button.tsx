@@ -13,7 +13,7 @@ export function AdminLogoutButton() {
     setIsLoading(true);
     const supabase = createBrowserSupabaseClient();
     await supabase.auth.signOut();
-    router.replace('/admin');
+    router.replace('/hm-admin');
     router.refresh();
   }
 

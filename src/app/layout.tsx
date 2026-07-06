@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Histórias da Mamá',
-    description: 'Biblioteca digital infantil premium.',
+    description: 'Histórias infantis para imaginar, aprender e se encantar.',
     type: 'website',
   },
   manifest: '/manifest.json',

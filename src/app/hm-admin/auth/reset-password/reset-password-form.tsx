@@ -21,7 +21,7 @@ export function ResetPasswordForm() {
     try {
       const supabase = createBrowserSupabaseClient();
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/admin`,
+        redirectTo: `${window.location.origin}/hm-admin`,
       });
 
       if (resetError) {

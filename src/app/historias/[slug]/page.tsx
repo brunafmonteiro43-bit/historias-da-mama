@@ -1,17 +1,9 @@
+import { Clock, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { BrandIllustration } from '@/components/brand-illustration';
+import { ShareButton } from '@/components/share-button';
+import { StoryCard } from '@/components/story-card';
 import { publishedStories } from '@/data/stories';
-import { StoryReader } from './story-reader';
-
-export function generateStaticParams() {
-  return publishedStories.map((story) => ({ slug: story.slug }));
-}
-
-export default function StoryPage({ params }: { params: { slug: string } }) {
-  const story = publishedStories.find((item) => item.slug === params.slug);
-
-  if (!story) {
-    notFound();
-  }
-
-  return <StoryReader story={story} />;
-}
+export function generateStaticParams() { return publishedStories.map((story) => ({ slug: story.slug })); }
+export default function StoryPage({ params }: { params: { slug: string } }) { const story = publishedStories.find((item) => item.slug === params.slug); if (!story) notFound(); const related = publishedStories.filter((item) => item.slug !== story.slug && item.categorySlug === story.categorySlug).concat(publishedStories.filter((item) => item.slug !== story.slug)).slice(0, 3); return <main><section className="px-5 py-12" style={{ background: story.color }}><div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[.9fr_1.1fr]"><div className="rounded-[2rem] bg-white/70 p-6 shadow-soft ring-1 ring-white/80 backdrop-blur"><BrandIllustration className="mx-auto h-auto w-full max-w-md" title={`Capa ilustrada de ${story.title}`} /></div><div><p className="font-black text-plum/75">{story.category} · {story.ageRange} · {story.readingTime}</p><h1 className="mt-3 max-w-4xl font-display text-5xl font-black leading-tight text-plum">{story.title}</h1><p className="mt-4 max-w-3xl text-lg leading-8 text-ink/75">{story.description}</p><div className="mt-6 flex flex-wrap gap-3"><span className="inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 font-black text-plum shadow-sm"><Clock className="h-4 w-4" />{story.readingTime}</span><ShareButton className="h-auto w-auto bg-white/85 px-4 py-2 shadow-sm hover:bg-white" menuAlign="left" menuPlacement="bottom" showLabel storySlug={story.slug} storyTitle={story.title} /></div><Link className="mt-8 inline-flex items-center gap-2 rounded-[1.35rem] bg-plum px-7 py-4 font-black text-white shadow-soft transition hover:-translate-y-1 hover:bg-coral" href={`/historias/${story.slug}/ler`}><Sparkles className="h-5 w-5" />Começar leitura</Link></div></div></section><section className="mx-auto max-w-7xl px-5 py-12"><h2 className="font-display text-3xl font-black text-plum">Histórias relacionadas</h2><div className="mt-6 flex gap-6 overflow-x-auto pb-4">{related.map((item) => <StoryCard key={item.slug} story={item} />)}</div></section></main>; }
