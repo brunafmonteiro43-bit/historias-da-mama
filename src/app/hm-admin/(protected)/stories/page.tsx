@@ -17,7 +17,7 @@ export default async function AdminStoriesPage() {
           <p className="text-sm font-black uppercase tracking-[0.2em] text-coral">Conteúdo</p>
           <h1 className="mt-2 font-display text-4xl font-black text-plum">Histórias</h1>
         </div>
-        <Link className="inline-flex items-center gap-2 rounded-full bg-plum px-6 py-3 font-black text-white hover:bg-coral" href="/admin/stories/new">
+        <Link className="inline-flex items-center gap-2 rounded-full bg-plum px-6 py-3 font-black text-white hover:bg-coral" href="/hm-admin/stories/new">
           <PlusCircle className="h-5 w-5" />
           Cadastrar nova história
         </Link>
@@ -40,13 +40,13 @@ export default async function AdminStoriesPage() {
                 </p>
               </div>
               <span className="w-fit rounded-full bg-cream px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-plum">
-                {story.status === 'published' ? 'Publicado' : 'Rascunho'}
+                {story.status === 'published' ? 'Publicado' : story.status === 'pending_review' ? 'Pendente de revisão' : story.status === 'rejected' ? 'Rejeitada' : 'Rascunho'}
               </span>
               <span className="text-sm font-bold text-slate-600">{story.category}</span>
               <div className="flex flex-wrap gap-2">
                 <Link
                   className="inline-flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-sm font-black text-plum"
-                  href={`/admin/stories/${story.id}/edit`}
+                  href={`/hm-admin/stories/${story.id}/edit`}
                 >
                   <Edit3 className="h-4 w-4" />
                   Editar

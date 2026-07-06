@@ -14,7 +14,7 @@ export default function ResetPasswordPage() {
           Informe o e-mail da conta administradora. O Supabase enviará o link de recuperação configurado no projeto.
         </p>
         <ResetPasswordForm />
-        <Link className="mt-6 inline-flex rounded-full bg-slate-100 px-5 py-3 font-black text-ink" href="/admin">
+        <Link className="mt-6 inline-flex rounded-full bg-slate-100 px-5 py-3 font-black text-ink" href="/hm-admin">
           Voltar ao login
         </Link>
       </section>

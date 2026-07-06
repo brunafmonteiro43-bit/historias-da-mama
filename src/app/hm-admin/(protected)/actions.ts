@@ -197,10 +197,10 @@ export async function saveStoryAction(formData: FormData) {
     }
   }
 
-  revalidatePath('/admin/dashboard');
-  revalidatePath('/admin/stories');
+  revalidatePath('/hm-admin/dashboard');
+  revalidatePath('/hm-admin/stories');
   revalidatePath('/biblioteca');
-  redirect('/admin/stories');
+  redirect('/hm-admin/stories');
 }
 
 export async function toggleStoryStatusAction(formData: FormData) {
@@ -217,8 +217,8 @@ export async function toggleStoryStatusAction(formData: FormData) {
     })
     .eq('id', id);
 
-  revalidatePath('/admin/dashboard');
-  revalidatePath('/admin/stories');
+  revalidatePath('/hm-admin/dashboard');
+  revalidatePath('/hm-admin/stories');
 }
 
 export async function deleteStoryAction(formData: FormData) {
@@ -226,8 +226,8 @@ export async function deleteStoryAction(formData: FormData) {
   const id = getString(formData, 'id');
 
   await supabase.from('stories').delete().eq('id', id);
-  revalidatePath('/admin/dashboard');
-  revalidatePath('/admin/stories');
+  revalidatePath('/hm-admin/dashboard');
+  revalidatePath('/hm-admin/stories');
 }
 
 export async function addCategoryAction(formData: FormData) {
@@ -240,7 +240,7 @@ export async function addCategoryAction(formData: FormData) {
   }
 
   await supabase.from('categories').insert({ description, name, slug: slugify(name) });
-  revalidatePath('/admin/categories');
+  revalidatePath('/hm-admin/categories');
 }
 
 export async function deleteCategoryAction(formData: FormData) {
@@ -248,5 +248,5 @@ export async function deleteCategoryAction(formData: FormData) {
   const id = getString(formData, 'id');
 
   await supabase.from('categories').delete().eq('id', id);
-  revalidatePath('/admin/categories');
+  revalidatePath('/hm-admin/categories');
 }

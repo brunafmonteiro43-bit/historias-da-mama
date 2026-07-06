@@ -5,10 +5,10 @@ import { Logo } from '@/components/logo';
 import { requireAdmin } from '@/lib/admin-auth';
 
 const adminNavigation = [
-  { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/admin/stories', icon: BookOpen, label: 'Histórias' },
-  { href: '/admin/stories/new', icon: PlusCircle, label: 'Nova história' },
-  { href: '/admin/categories', icon: FolderKanban, label: 'Categorias' },
+  { href: '/hm-admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/hm-admin/stories', icon: BookOpen, label: 'Histórias' },
+  { href: '/hm-admin/stories/new', icon: PlusCircle, label: 'Nova história' },
+  { href: '/hm-admin/categories', icon: FolderKanban, label: 'Categorias' },
 ];
 
 export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {

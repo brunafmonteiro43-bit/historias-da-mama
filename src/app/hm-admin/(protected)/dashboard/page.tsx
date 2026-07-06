@@ -10,11 +10,13 @@ export default async function AdminDashboardPage() {
   const [stories, categories] = await Promise.all([getAdminStories(supabase), getAdminCategories(supabase)]);
   const published = stories.filter((story) => story.status === 'published').length;
   const drafts = stories.filter((story) => story.status === 'draft').length;
+  const pending = stories.filter((story) => story.status === 'pending_review').length;
 
   const stats = [
     { icon: BookOpen, label: 'Total de histórias', value: stories.length },
     { icon: Sparkles, label: 'Publicadas', value: published },
     { icon: FileText, label: 'Rascunhos', value: drafts },
+    { icon: Sparkles, label: 'Pendentes', value: pending },
     { icon: FolderKanban, label: 'Categorias', value: categories.length },
   ];
 
@@ -31,7 +33,7 @@ export default async function AdminDashboardPage() {
           </div>
           <Link
             className="inline-flex items-center gap-2 rounded-[1.4rem] bg-plum px-6 py-4 font-black text-white shadow-soft transition hover:-translate-y-1 hover:bg-coral"
-            href="/admin/stories/new"
+            href="/hm-admin/stories/new"
           >
             <PlusCircle className="h-5 w-5" />
             Cadastrar nova história
@@ -39,7 +41,7 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-5">
         {stats.map(({ icon: Icon, label, value }) => (
           <article className="rounded-3xl bg-white p-6 shadow-soft ring-1 ring-lilac/20" key={label}>
             <Icon className="h-7 w-7 text-plum" />
@@ -52,7 +54,7 @@ export default async function AdminDashboardPage() {
       <section className="rounded-[2rem] bg-white p-6 shadow-soft ring-1 ring-lilac/20">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-2xl font-black text-plum">Histórias recentes</h2>
-          <Link className="rounded-full bg-cream px-4 py-2 font-black text-plum" href="/admin/stories">
+          <Link className="rounded-full bg-cream px-4 py-2 font-black text-plum" href="/hm-admin/stories">
             Ver todas
           </Link>
         </div>
@@ -66,7 +68,7 @@ export default async function AdminDashboardPage() {
                 </p>
               </div>
               <span className="rounded-full bg-cream px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-plum">
-                {story.status === 'published' ? 'Publicado' : 'Rascunho'}
+                {story.status === 'published' ? 'Publicado' : story.status === 'pending_review' ? 'Pendente de revisão' : story.status === 'rejected' ? 'Rejeitada' : 'Rascunho'}
               </span>
             </div>
           ))}

@@ -35,7 +35,7 @@ export async function requireAdmin() {
   const context = await getAdminContext();
 
   if (!context) {
-    redirect('/admin');
+    redirect('/hm-admin');
   }
 
   return context;
@@ -45,6 +45,6 @@ export async function redirectAdminToDashboard() {
   const context = await getAdminContext();
 
   if (context) {
-    redirect('/admin/dashboard');
+    redirect('/hm-admin/dashboard');
   }
 }

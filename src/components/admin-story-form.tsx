@@ -4,7 +4,7 @@
 
 import { ArrowDown, ArrowUp, CheckCircle2, FileText, GripVertical, ImagePlus, Layers3, UploadCloud } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import { saveStoryAction } from '@/app/admin/(protected)/actions';
+import { saveStoryAction } from '@/app/hm-admin/(protected)/actions';
 import type { AdminCategorySummary, EditableStory } from '@/lib/admin-queries';
 
 type AdminStoryFormProps = {

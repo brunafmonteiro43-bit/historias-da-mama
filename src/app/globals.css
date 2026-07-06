@@ -88,3 +88,10 @@ textarea {
   0%, 100% { opacity: .55; transform: scale(.92); }
   50% { opacity: 1; transform: scale(1.08); }
 }
+
+.cloud-drift { animation: cloud-drift 18s ease-in-out infinite; }
+.cloud-drift-slow { animation: cloud-drift 24s ease-in-out infinite reverse; }
+@keyframes cloud-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(34px); }
+}

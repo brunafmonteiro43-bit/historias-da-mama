@@ -2,9 +2,9 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 const protectedAdminRoutes = [
-  '/admin/dashboard',
-  '/admin/stories',
-  '/admin/categories',
+  '/hm-admin/dashboard',
+  '/hm-admin/stories',
+  '/hm-admin/categories',
 ];
 
 function isProtectedAdminRoute(pathname: string) {
@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
 
   if (!supabaseUrl || !supabaseAnonKey) {
     if (isProtected) {
-      return NextResponse.redirect(new URL('/admin', request.url));
+      return NextResponse.redirect(new URL('/hm-admin', request.url));
     }
 
     return NextResponse.next();
@@ -68,17 +68,17 @@ export async function middleware(request: NextRequest) {
     isAdmin = data === true;
   }
 
-  if (pathname === '/admin' && isAdmin) {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+  if (pathname === '/hm-admin' && isAdmin) {
+    return NextResponse.redirect(new URL('/hm-admin/dashboard', request.url));
   }
 
   if (isProtected && !isAdmin) {
-    return NextResponse.redirect(new URL('/admin', request.url));
+    return NextResponse.redirect(new URL('/hm-admin', request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/hm-admin/:path*'],
 };

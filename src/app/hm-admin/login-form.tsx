@@ -46,7 +46,7 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
         return;
       }
 
-      router.replace('/admin/dashboard');
+      router.replace('/hm-admin/dashboard');
       router.refresh();
     } catch {
       setError('Não foi possível conectar ao Supabase. Confira as variáveis de ambiente.');

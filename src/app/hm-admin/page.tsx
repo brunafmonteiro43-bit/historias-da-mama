@@ -45,7 +45,7 @@ export default async function AdminLoginPage() {
 
           <AdminLoginForm disabled={!isSupabaseConfigured} />
 
-          <Link className="mt-5 block text-center text-sm font-black text-plum" href="/admin/auth/reset-password">
+          <Link className="mt-5 block text-center text-sm font-black text-plum" href="/hm-admin/auth/reset-password">
             Recuperar senha
           </Link>
         </section>

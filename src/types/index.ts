@@ -1,4 +1,4 @@
-export type StoryStatus = 'draft' | 'published';
+export type StoryStatus = 'draft' | 'published' | 'pending_review' | 'rejected';
 
 export type Story = {
   id?: string;

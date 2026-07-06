@@ -36,7 +36,7 @@ create table public.stories (
   cover_url text,
   pdf_url text,
   docx_source_url text,
-  status text not null default 'draft' check (status in ('draft', 'published')),
+  status text not null default 'draft' check (status in ('draft', 'published', 'pending_review', 'rejected')),
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   published_at timestamptz
@@ -77,6 +77,7 @@ create policy "Admins can manage authors" on public.authors for all using (publi
 create policy "Public can read categories" on public.categories for select using (true);
 create policy "Admins can manage categories" on public.categories for all using (public.is_admin()) with check (public.is_admin());
 create policy "Visitors can read published stories" on public.stories for select using (status = 'published');
+create policy "Visitors can suggest stories for review" on public.stories for insert with check (status = 'pending_review');
 create policy "Admins can manage all stories" on public.stories for all using (public.is_admin()) with check (public.is_admin());
 create policy "Visitors can read pages from published stories" on public.story_pages for select using (
   exists (select 1 from public.stories where stories.id = story_pages.story_id and stories.status = 'published')
