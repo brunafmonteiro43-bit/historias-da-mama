@@ -15,9 +15,9 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
   const { user } = await requireAdmin();
 
   return (
-    <main className="min-h-screen bg-[#f7f7fb]">
+    <main className="min-h-screen bg-[#f8f6fb]">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
-        <aside className="border-r border-slate-200 bg-ink px-5 py-6 text-white">
+        <aside className="border-r border-lilac/20 bg-plum px-5 py-6 text-white">
           <Logo tone="light" />
           <nav className="mt-8 grid gap-2">
             {adminNavigation.map(({ href, icon: Icon, label }) => (
@@ -38,10 +38,10 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
         </aside>
 
         <section>
-          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 px-5 py-4 backdrop-blur">
+          <header className="sticky top-0 z-30 border-b border-lilac/20 bg-white/88 px-5 py-4 backdrop-blur">
             <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-600">Painel administrativo</p>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-coral">Painel administrativo</p>
                 <p className="text-sm text-slate-600">{user.email}</p>
               </div>
               <AdminLogoutButton />

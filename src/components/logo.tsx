@@ -1,30 +1,33 @@
 import Link from 'next/link';
+import { BrandIllustration } from './brand-illustration';
 
 type LogoProps = {
+  orientation?: 'horizontal' | 'vertical';
   tone?: 'light' | 'dark';
 };
 
-export function Logo({ tone = 'dark' }: LogoProps) {
-  const textColor = tone === 'light' ? 'text-white' : 'text-ink';
+export function Logo({ orientation = 'horizontal', tone = 'dark' }: LogoProps) {
+  const textColor = tone === 'light' ? 'text-white' : 'text-plum';
+  const subTextColor = tone === 'light' ? 'text-white/72' : 'text-ink/70';
 
   return (
-    <Link aria-label="Histórias da Mamá" className="flex items-center gap-3" href="/">
-      <svg className="h-12 w-12 drop-shadow-sm" role="img" viewBox="0 0 96 96">
-        <defs>
-          <linearGradient id="logo-book" x1="10" x2="86" y1="8" y2="88">
-            <stop stopColor="#FFE8A3" />
-            <stop offset="0.48" stopColor="#DCCBFF" />
-            <stop offset="1" stopColor="#BFE7FF" />
-          </linearGradient>
-        </defs>
-        <rect fill="url(#logo-book)" height="96" rx="28" width="96" />
-        <path d="M23 31c10-6 20-7 25-2 5-5 15-4 25 2v36c-10-6-20-7-25-2-5-5-15-4-25 2V31Z" fill="#fffdf7" />
-        <path d="M48 29v37M30 39c6-2 11-2 15 1M51 40c4-3 10-3 16-1" stroke="#7C5CC4" strokeLinecap="round" strokeWidth="4" />
-        <path d="M35 23c3-8 9-11 13-11s10 3 13 11" fill="none" stroke="#293241" strokeLinecap="round" strokeWidth="5" />
-        <circle cx="72" cy="23" fill="#FFD6E8" r="6" />
-        <circle cx="25" cy="73" fill="#BDEFE7" r="5" />
-      </svg>
-      <span className={`text-xl font-black tracking-tight ${textColor}`}>Histórias da Mamá</span>
+    <Link
+      aria-label="Histórias da Mamá"
+      className={orientation === 'vertical' ? 'inline-flex flex-col items-center gap-2 text-center' : 'flex items-center gap-3'}
+      href="/"
+    >
+      <BrandIllustration className={orientation === 'vertical' ? 'h-28 w-36' : 'h-14 w-16'} compact title="Logo Histórias da Mamá" />
+      <span className={orientation === 'vertical' ? '' : 'grid leading-none'}>
+        <span className={`font-display text-2xl font-black tracking-normal ${textColor}`}>Histórias</span>
+        <span className={`font-display text-xl font-black tracking-normal ${orientation === 'vertical' ? 'text-coral' : textColor}`}>
+          da Mamá
+        </span>
+        {orientation === 'vertical' ? (
+          <span className={`mt-1 block text-[0.62rem] font-black uppercase tracking-[0.24em] ${subTextColor}`}>
+            Imaginar, aprender e se encantar
+          </span>
+        ) : null}
+      </span>
     </Link>
   );
 }

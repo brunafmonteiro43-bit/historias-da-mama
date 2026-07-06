@@ -1,11 +1,11 @@
 {
     "name": "Hist\u00f3rias da Mam\u00e1",
     "short_name": "Mam\u00e1",
-    "description": "Biblioteca digital infantil",
+    "description": "Histórias infantis para imaginar, aprender e se encantar.",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#DCCBFF",
+    "background_color": "#FFF8EA",
+    "theme_color": "#3B246B",
     "icons": [
         {
             "src": "/icons/icon.svg",

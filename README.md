@@ -2,6 +2,32 @@
 
 Biblioteca infantil pública com leitura livre para visitantes e painel administrativo privado protegido por Supabase Auth.
 
+## Identidade visual
+
+A marca usa o conceito de um livro aberto dentro de um balão de pensamento. O balão representa imaginação, sonhos e histórias; o livro representa leitura; e os pequenos elementos mágicos, como estrelas, castelo, árvore, nuvens, flores e borboleta, reforçam o universo infantil premium.
+
+Paleta principal:
+
+- Roxo profundo: `#3B246B`
+- Lilás suave: `#B79BEF`
+- Rosa coral: `#F36F91`
+- Azul céu pastel: `#BFEAF5`
+- Verde água: `#8FD8CF`
+- Amarelo manteiga: `#FFE7A3`
+- Creme claro: `#FFF8EA`
+- Branco: `#FFFFFF`
+- Cinza escuro: `#273142`
+
+Uso correto da marca:
+
+- Use a versão horizontal no cabeçalho e em contextos compactos.
+- Use a versão vertical em telas institucionais, login e materiais com mais espaço.
+- Use apenas o símbolo do balão com livro para favicon, ícone e placeholders.
+- Em fundos escuros, use a logo clara e mantenha contraste alto.
+- Evite excesso de elementos decorativos; a identidade deve continuar limpa, delicada e profissional.
+
+Para trocar a logo futuramente, atualize `src/components/brand-illustration.tsx`, `src/components/logo.tsx`, `public/brand/logo.svg` e `public/icons/icon.svg`. O restante do site reutiliza esses pontos centrais.
+
 ## Acesso correto
 
 - Visitantes acessam a home, `/biblioteca` e histórias publicadas sem login.
@@ -59,24 +85,13 @@ Depois disso, esse usuário poderá entrar em `/admin`.
 4. O sistema chama `is_admin()` para confirmar autorização.
 5. Após sucesso, abre `/admin/dashboard`.
 
-O painel inclui:
-
-- Dashboard com total de histórias, publicadas, rascunhos e categorias.
-- Lista de histórias em `/admin/stories`.
-- Cadastro em `/admin/stories/new`.
-- Edição em `/admin/stories/[id]/edit`.
-- Categorias em `/admin/categories`.
-- Logout real com `supabase.auth.signOut()`.
+O painel inclui dashboard, lista de histórias, cadastro, edição, categorias e logout real com `supabase.auth.signOut()`.
 
 ## Cadastrar uma história
 
 1. Entre no painel.
 2. Clique em “Cadastrar nova história”.
-3. Preencha as etapas:
-   - Informações básicas.
-   - Capa e arquivos.
-   - Páginas da história.
-   - Publicação.
+3. Preencha informações básicas, capa e arquivos, páginas da história e publicação.
 4. Envie capa em PNG, JPG ou WEBP.
 5. Envie PDF opcional da história.
 6. Adicione textos e/ou imagens das páginas.
@@ -88,10 +103,7 @@ Em `/admin/stories`, use a ação “Publicar” para tornar uma história visí
 
 ## Storage
 
-O bucket `stories` aceita:
-
-- PDF até 50 MB.
-- PNG, JPG e WEBP até 8 MB por imagem.
+O bucket `stories` aceita PDF até 50 MB e PNG, JPG ou WEBP até 8 MB por imagem.
 
 As políticas de storage permitem leitura pública dos arquivos e escrita apenas para administradores autenticados.
 

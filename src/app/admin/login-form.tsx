@@ -61,7 +61,7 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
         E-mail
         <input
           autoComplete="email"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-medium outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+          className="rounded-2xl border border-lilac/35 bg-cream/35 px-4 py-3 font-medium outline-none transition focus:border-plum focus:ring-4 focus:ring-lilac/25"
           disabled={disabled || isLoading}
           name="email"
           placeholder="admin@historiasdamama.com"
@@ -74,7 +74,7 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
         Senha
         <input
           autoComplete="current-password"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-medium outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+          className="rounded-2xl border border-lilac/35 bg-cream/35 px-4 py-3 font-medium outline-none transition focus:border-plum focus:ring-4 focus:ring-lilac/25"
           disabled={disabled || isLoading}
           name="password"
           placeholder="Sua senha"
@@ -90,7 +90,7 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
       ) : null}
 
       <button
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 font-black text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-plum px-6 py-3 font-black text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-coral disabled:cursor-not-allowed disabled:opacity-60"
         disabled={disabled || isLoading}
         type="submit"
       >
