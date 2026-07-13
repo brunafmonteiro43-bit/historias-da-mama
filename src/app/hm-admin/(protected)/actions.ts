@@ -21,58 +21,12 @@ const storySchema = z.object({
   title: z.string().min(3),
 });
 
-const imageTypes = ['image/png', 'image/jpeg', 'image/webp'];
-const pdfTypes = ['application/pdf'];
-const imageLimit = 8 * 1024 * 1024;
-const pdfLimit = 80 * 1024 * 1024;
-
 function getString(formData: FormData, key: string) {
   return String(formData.get(key) ?? '').trim();
 }
 
 function getBool(formData: FormData, key: string) {
   return formData.get(key) === 'on' || formData.get(key) === 'true';
-}
-
-function getFile(formData: FormData, key: string) {
-  const value = formData.get(key);
-  return value instanceof File && value.size > 0 ? value : null;
-}
-
-function getFiles(formData: FormData, key: string) {
-  return formData.getAll(key).filter((value): value is File => value instanceof File && value.size > 0);
-}
-
-function validateFile(file: File, allowedTypes: string[], limit: number, label: string) {
-  if (!allowedTypes.includes(file.type)) {
-    throw new Error(`${label} deve ser PNG, JPG, WEBP ou PDF.`);
-  }
-
-  if (file.size > limit) {
-    throw new Error(`${label} ultrapassa o tamanho permitido.`);
-  }
-}
-
-async function uploadFile(
-  supabase: Awaited<ReturnType<typeof requireAdmin>>['supabase'],
-  file: File,
-  storyId: string,
-  bucket: 'story-covers' | 'story-pages' | 'story-pdfs',
-  folder: string,
-) {
-  const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-');
-  const path = `${storyId}/${folder}/${Date.now()}-${safeName}`;
-  const { error } = await supabase.storage.from(bucket).upload(path, file, {
-    cacheControl: '3600',
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) {
-    throw new Error(`Falha ao enviar ${file.name}.`);
-  }
-
-  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
 
 async function getOrCreateAuthor(supabase: Awaited<ReturnType<typeof requireAdmin>>['supabase'], name: string) {
@@ -159,10 +113,8 @@ export async function saveStoryAction(formData: FormData) {
   }
 
   const storyId = response.data.id;
-  const cover = getFile(formData, 'cover');
-  const pdf = getFile(formData, 'storyPdf');
-  const pageFiles = getFiles(formData, 'pageImages');
   const existingCoverUrl = getString(formData, 'existingCoverUrl');
+  const existingPdfUrl = getString(formData, 'existingPdfUrl');
   const pageImageSources = formData
     .getAll('pageImageSource')
     .map((value) => String(value ?? '').trim())
@@ -170,16 +122,12 @@ export async function saveStoryAction(formData: FormData) {
 
   const fileUpdates: Record<string, string> = {};
 
-  if (cover) {
-    validateFile(cover, imageTypes, imageLimit, 'A capa');
-    fileUpdates.cover_url = await uploadFile(supabase, cover, storyId, 'story-covers', 'cover');
-  } else if (existingCoverUrl) {
+  if (existingCoverUrl) {
     fileUpdates.cover_url = existingCoverUrl;
   }
 
-  if (pdf) {
-    validateFile(pdf, pdfTypes, pdfLimit, 'O PDF');
-    fileUpdates.pdf_url = await uploadFile(supabase, pdf, storyId, 'story-pdfs', 'pdf');
+  if (existingPdfUrl) {
+    fileUpdates.pdf_url = existingPdfUrl;
   }
 
   if (Object.keys(fileUpdates).length > 0) {
@@ -191,25 +139,9 @@ export async function saveStoryAction(formData: FormData) {
     .map((value) => String(value ?? '').trim())
     .filter(Boolean);
 
-  if (pageTexts.length > 0 || pageFiles.length > 0 || pageImageSources.length > 0) {
-    const uploadedPages: Array<string | null> = [];
-
-    for (const file of pageFiles) {
-      validateFile(file, imageTypes, imageLimit, 'A página');
-      uploadedPages.push(await uploadFile(supabase, file, storyId, 'story-pages', 'pages'));
-    }
-
+  if (pageTexts.length > 0 || pageImageSources.length > 0) {
     await supabase.from('story_pages').delete().eq('story_id', storyId);
-    let uploadedIndex = 0;
-    const imageUrls = pageImageSources.map((source) => {
-      if (source === '__upload__') {
-        const url = uploadedPages[uploadedIndex] ?? null;
-        uploadedIndex += 1;
-        return url;
-      }
-
-      return source;
-    });
+    const imageUrls = pageImageSources.map((source) => (source === '__upload__' ? null : source));
     const pageCount = Math.max(pageTexts.length, imageUrls.length);
     const pages = Array.from({ length: pageCount }, (_, index) => ({
       content: pageTexts[index] ?? '',

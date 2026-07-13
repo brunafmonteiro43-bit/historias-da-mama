@@ -14,11 +14,13 @@ import {
   UploadCloud,
   WandSparkles,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { useForm, type FieldErrors, type FieldPath, type Resolver } from 'react-hook-form';
+import { useForm, type FieldErrors, type FieldPath } from 'react-hook-form';
 import { z } from 'zod';
-import { saveStoryAction } from '@/app/hm-admin/(protected)/actions';
 import type { AdminCategorySummary, EditableStory } from '@/lib/admin-queries';
+import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import { slugify } from '@/lib/utils';
 import { useToast } from '@/components/ui/toast';
 
 type AdminStoryFormProps = {
@@ -71,6 +73,17 @@ type StoryFormValues = {
   title: string;
 };
 
+type UploadStage =
+  | 'idle'
+  | 'creating'
+  | 'cover'
+  | 'pdf'
+  | 'pages'
+  | 'saving'
+  | 'publishing'
+  | 'done'
+  | 'error';
+
 declare global {
   interface Window {
     pdfjsLib?: PdfJs;
@@ -80,6 +93,7 @@ declare global {
 const steps = ['Importar', 'Dados básicos', 'Preview e páginas', 'Publicação'];
 
 const imageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+const pdfTypes = ['application/pdf'];
 const importTypes = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -87,9 +101,11 @@ const importTypes = [
   'application/x-zip-compressed',
   ...imageTypes,
 ];
-const imageLimit = 8 * 1024 * 1024;
-const pdfLimit = 80 * 1024 * 1024;
+const coverLimit = 5 * 1024 * 1024;
+const imageLimit = 10 * 1024 * 1024;
+const pdfLimit = 50 * 1024 * 1024;
 const archiveLimit = 120 * 1024 * 1024;
+const uploadTimeoutMs = 30_000;
 const pdfScriptUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const pdfWorkerUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -137,6 +153,34 @@ const zodStoryResolver = async (values: StoryFormValues) => {
 
 function formatSize(size: number) {
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function normalizeFileName(name: string) {
+  const extension = getExtension(name);
+  const baseName = name
+    .replace(/\.[^.]+$/, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .slice(0, 60);
+
+  return `${baseName || 'arquivo'}${extension ? `.${extension}` : ''}`;
+}
+
+function uniquePath(storyId: string, folder: string, fileName: string) {
+  const unique = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  return `stories/${storyId}/${folder}/${unique}-${normalizeFileName(fileName)}`;
+}
+
+function withTimeout<T>(operation: PromiseLike<T>, message: string) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), uploadTimeoutMs);
+  });
+
+  return Promise.race([operation, timeout]).finally(() => clearTimeout(timeoutId));
 }
 
 function naturalCompare(a: string, b: string) {
@@ -376,12 +420,96 @@ function validateImportFile(file: File) {
   return '';
 }
 
+function validateUploadFiles(cover: ImportedPage | null, pdf: File | null, pages: ImportedPage[]) {
+  const nextErrors: string[] = [];
+
+  if (cover?.file) {
+    if (!imageTypes.includes(cover.file.type)) {
+      nextErrors.push('A capa deve ser PNG, JPG ou WEBP.');
+    }
+
+    if (cover.file.size > coverLimit) {
+      nextErrors.push(`A capa deve ter no máximo ${formatSize(coverLimit)}.`);
+    }
+  }
+
+  if (pdf) {
+    if (!pdfTypes.includes(pdf.type)) {
+      nextErrors.push('O arquivo original deve ser PDF.');
+    }
+
+    if (pdf.size > pdfLimit) {
+      nextErrors.push(`O PDF deve ter no máximo ${formatSize(pdfLimit)}.`);
+    }
+  }
+
+  pages.forEach((page, index) => {
+    if (!page.file) {
+      return;
+    }
+
+    if (!imageTypes.includes(page.file.type)) {
+      nextErrors.push(`A página ${index + 1} deve ser PNG, JPG ou WEBP.`);
+    }
+
+    if (page.file.size > imageLimit) {
+      nextErrors.push(`A página ${index + 1} deve ter no máximo ${formatSize(imageLimit)}.`);
+    }
+  });
+
+  return nextErrors;
+}
+
+async function getOrCreateAuthorId(supabase: ReturnType<typeof createBrowserSupabaseClient>, name: string) {
+  const { data: existing, error: readError } = await supabase.from('authors').select('id').eq('name', name).maybeSingle();
+
+  if (readError) {
+    throw new Error(readError.message);
+  }
+
+  if (existing?.id) {
+    return existing.id as string;
+  }
+
+  const { data, error } = await supabase.from('authors').insert({ name }).select('id').single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? 'Não foi possível salvar o autor.');
+  }
+
+  return data.id as string;
+}
+
+async function getOrCreateCategoryId(supabase: ReturnType<typeof createBrowserSupabaseClient>, name: string) {
+  const { data: existing, error: readError } = await supabase.from('categories').select('id').eq('name', name).maybeSingle();
+
+  if (readError) {
+    throw new Error(readError.message);
+  }
+
+  if (existing?.id) {
+    return existing.id as string;
+  }
+
+  const { data, error } = await supabase.from('categories').insert({ description: '', name, slug: slugify(name) }).select('id').single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? 'Não foi possível salvar a categoria.');
+  }
+
+  return data.id as string;
+}
+
 export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<string[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [uploadStage, setUploadStage] = useState<UploadStage>('idle');
+  const [uploadMessage, setUploadMessage] = useState('');
   const [importSummary, setImportSummary] = useState('');
+  const [originalPdf, setOriginalPdf] = useState<File | null>(null);
   const [cover, setCover] = useState<ImportedPage | null>(
     story?.coverUrl ? { file: null, id: 'saved-cover', name: 'Capa atual', url: story.coverUrl } : null,
   );
@@ -396,11 +524,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
   const [pageTexts, setPageTexts] = useState<string[]>(story?.pages?.length ? story.pages : []);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
-  const pagesInputRef = useRef<HTMLInputElement>(null);
-  const pdfInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const allowSubmitRef = useRef(false);
   const { toast } = useToast();
 
   const defaultCategory = story?.category ?? categories[0]?.name ?? 'Aventura';
@@ -448,8 +572,6 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
     ],
     [],
   );
-
-  const importedPageFiles = pages.map((page) => page.file).filter((file): file is File => Boolean(file));
 
   function collectCurrentErrors(fields?: Array<FieldPath<StoryFormValues>>) {
     const result = storyFormSchema.safeParse(getValues());
@@ -511,6 +633,33 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
     setCurrentStep((step) => step + 1);
   }
 
+  function updateProgress(stage: UploadStage, message: string) {
+    setUploadStage(stage);
+    setUploadMessage(message);
+    console.info(`[hm-admin] ${message}`);
+  }
+
+  async function uploadDirectFile(bucket: 'story-covers' | 'story-pages' | 'story-pdfs', path: string, file: File, label: string) {
+    const supabase = createBrowserSupabaseClient();
+    console.info(`[hm-admin] ${label} iniciado`, { bucket, path, size: file.size, type: file.type });
+
+    const { error } = await withTimeout(
+      supabase.storage.from(bucket).upload(path, file, {
+        cacheControl: '3600',
+        contentType: file.type,
+        upsert: false,
+      }),
+      `${label} demorou mais de 30 segundos.`,
+    );
+
+    if (error) {
+      throw new Error(`${label}: ${error.message}`);
+    }
+
+    console.info(`[hm-admin] ${label} concluído`, { bucket, path });
+    return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  }
+
   async function handlePublish() {
     const valid = await trigger();
 
@@ -523,19 +672,151 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
       return;
     }
 
-    allowSubmitRef.current = true;
+    const fileErrors = validateUploadFiles(cover, originalPdf, pages);
+
+    if (fileErrors.length > 0) {
+      setErrors(fileErrors);
+      setCurrentStep(2);
+      toast({ title: 'Revise os arquivos', description: fileErrors[0] });
+      return;
+    }
+
     setIsPublishing(true);
-    toast({
-      title: selectedStatus === 'draft' ? 'Rascunho pronto para salvar' : 'História pronta para publicar',
-      description: 'Enviando ao painel e redirecionando para a lista de histórias.',
-    });
-    formRef.current?.requestSubmit();
+    setErrors([]);
+    setUploadStage('creating');
+
+    try {
+      const supabase = createBrowserSupabaseClient();
+      const values = storyFormSchema.parse(getValues());
+      const now = new Date().toISOString();
+      const authorId = await getOrCreateAuthorId(supabase, values.author.trim());
+      const categoryId = await getOrCreateCategoryId(supabase, values.category);
+      const temporarySlug = slugify(values.title);
+      const basePayload = {
+        age_range: values.ageRange,
+        author_id: authorId,
+        category_id: categoryId,
+        description: values.description,
+        full_description: values.fullDescription || values.description,
+        has_coloring_version: values.hasColoringVersion,
+        is_featured: values.isFeatured,
+        is_story_of_week: values.isStoryOfWeek,
+        published_at: null,
+        reading_time_minutes: values.readingMinutes,
+        slug: temporarySlug,
+        status: 'draft',
+        theme: values.theme,
+        title: values.title,
+        updated_at: now,
+      };
+
+      updateProgress('creating', 'Criando história');
+      const response = story?.id
+        ? await withTimeout(
+            supabase.from('stories').update(basePayload).eq('id', story.id).select('id').single(),
+            'A criação do rascunho demorou mais de 30 segundos.',
+          )
+        : await withTimeout(
+            supabase.from('stories').insert(basePayload).select('id').single(),
+            'A criação do rascunho demorou mais de 30 segundos.',
+          );
+
+      if (response.error || !response.data) {
+        throw new Error(response.error?.message ?? 'Não foi possível criar a história temporária.');
+      }
+
+      const storyId = response.data.id as string;
+      console.info('[hm-admin] história temporária criada', { storyId });
+      let coverUrl = cover && !cover.file ? cover.url : null;
+      let pdfUrl = story?.pdfUrl ?? null;
+
+      if (cover?.file) {
+        updateProgress('cover', 'Enviando capa');
+        coverUrl = await uploadDirectFile('story-covers', uniquePath(storyId, 'cover', cover.file.name), cover.file, 'Upload da capa');
+      }
+
+      if (originalPdf) {
+        updateProgress('pdf', 'Enviando PDF');
+        pdfUrl = await uploadDirectFile('story-pdfs', uniquePath(storyId, 'original', originalPdf.name), originalPdf, 'Upload do PDF');
+      }
+
+      updateProgress('pages', `Enviando páginas 0 de ${pages.length}`);
+      const pageImageUrls: Array<string | null> = [];
+
+      for (const [index, page] of pages.entries()) {
+        if (!page.file) {
+          pageImageUrls.push(page.url);
+          continue;
+        }
+
+        updateProgress('pages', `Enviando página ${index + 1} de ${pages.length}`);
+        const paddedPage = String(index + 1).padStart(3, '0');
+        pageImageUrls.push(
+          await uploadDirectFile('story-pages', `stories/${storyId}/pages/page-${paddedPage}-${normalizeFileName(page.file.name)}`, page.file, `Upload da página ${index + 1}`),
+        );
+      }
+
+      updateProgress('saving', 'Salvando dados');
+      await withTimeout(supabase.from('story_pages').delete().eq('story_id', storyId), 'A limpeza das páginas demorou mais de 30 segundos.');
+
+      const pageCount = Math.max(pageImageUrls.length, pageTexts.length);
+      const pageRows = Array.from({ length: pageCount }, (_, index) => ({
+        content: pageTexts[index] ?? '',
+        image_url: pageImageUrls[index] ?? null,
+        page_number: index + 1,
+        story_id: storyId,
+      }));
+
+      if (pageRows.length > 0) {
+        const { error } = await withTimeout(
+          supabase.from('story_pages').insert(pageRows),
+          'O salvamento das páginas demorou mais de 30 segundos.',
+        );
+
+        if (error) {
+          throw new Error(error.message);
+        }
+      }
+
+      updateProgress('publishing', values.status === 'published' ? 'Publicando' : 'Salvando rascunho');
+      const { error: updateError } = await withTimeout(
+        supabase
+          .from('stories')
+          .update({
+            cover_url: coverUrl,
+            pdf_url: pdfUrl,
+            published_at: values.status === 'published' ? new Date().toISOString() : null,
+            status: values.status,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', storyId),
+        'A publicação demorou mais de 30 segundos.',
+      );
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      console.info('[hm-admin] publicação concluída', { storyId, pages: pageRows.length, status: values.status });
+      setUploadStage('done');
+      toast({
+        title: values.status === 'published' ? 'História publicada!' : 'Rascunho salvo!',
+        description: 'Tudo foi salvo no Supabase com sucesso.',
+      });
+      router.push('/hm-admin/stories');
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Não foi possível publicar a história.';
+      console.error('[hm-admin] falha ao publicar história', error);
+      setUploadStage('error');
+      setUploadMessage(message);
+      setIsPublishing(false);
+      toast({ title: 'Erro ao publicar', description: message });
+    }
   }
 
   function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
-    if (!allowSubmitRef.current) {
-      event.preventDefault();
-    }
+    event.preventDefault();
   }
 
   function fieldClass(name: FieldPath<StoryFormValues>) {
@@ -565,16 +846,6 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
       });
     };
   }, [cover, pages]);
-
-  useEffect(() => {
-    if (coverInputRef.current) {
-      coverInputRef.current.files = cover?.file ? dataTransferFromFiles([cover.file]) : dataTransferFromFiles([]);
-    }
-
-    if (pagesInputRef.current) {
-      pagesInputRef.current.files = dataTransferFromFiles(importedPageFiles);
-    }
-  }, [cover, importedPageFiles]);
 
   function applyImportedFiles(files: File[], sourceLabel: string) {
     if (files.length === 0) {
@@ -616,27 +887,27 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
       const extension = getExtension(firstFile.name);
 
       if (selectedFiles.length > 1 || imageTypes.includes(firstFile.type) || ['png', 'jpg', 'jpeg', 'webp'].includes(extension)) {
+        setOriginalPdf(null);
         applyImportedFiles(selectedFiles, 'Imagens importadas');
         return;
       }
 
       if (firstFile.type === 'application/pdf' || extension === 'pdf') {
         const pdfPages = await extractPdfPages(firstFile);
+        setOriginalPdf(firstFile);
         applyImportedFiles(pdfPages, 'PDF importado');
-
-        if (pdfInputRef.current) {
-          pdfInputRef.current.files = dataTransferFromFiles([firstFile]);
-        }
 
         return;
       }
 
       if (extension === 'docx') {
+        setOriginalPdf(null);
         applyImportedFiles(await extractZipImages(firstFile, true), 'DOCX importado');
         return;
       }
 
       if (extension === 'zip' || firstFile.type === 'application/zip' || firstFile.type === 'application/x-zip-compressed') {
+        setOriginalPdf(null);
         applyImportedFiles(await extractZipImages(firstFile), 'ZIP importado');
       }
     } catch (error) {
@@ -734,16 +1005,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
   }
 
   return (
-    <form action={saveStoryAction} className="grid gap-6 rounded-[2rem] bg-white p-6 shadow-soft md:p-8" onSubmit={handleFormSubmit} ref={formRef} noValidate>
-      {story?.id ? <input name="id" type="hidden" value={story.id} /> : null}
-      <input name="cover" ref={coverInputRef} type="file" className="hidden" />
-      <input name="pageImages" ref={pagesInputRef} type="file" className="hidden" multiple />
-      <input name="storyPdf" ref={pdfInputRef} type="file" className="hidden" />
-      {cover && !cover.file ? <input name="existingCoverUrl" type="hidden" value={cover.url} /> : null}
-      {pages.map((page) => (
-        <input key={page.id} name="pageImageSource" type="hidden" value={page.file ? '__upload__' : page.url} />
-      ))}
-
+    <form className="grid gap-6 rounded-[2rem] bg-white p-6 shadow-soft md:p-8" onSubmit={handleFormSubmit} ref={formRef} noValidate>
       <div>
         <p className="text-sm font-black uppercase tracking-[0.2em] text-violet-600">
           {story ? 'Editar história' : 'Nova história'}
@@ -782,6 +1044,38 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
       {importSummary ? (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-900">
           {importSummary}
+        </div>
+      ) : null}
+
+      {uploadStage !== 'idle' ? (
+        <div className="rounded-2xl border border-lilac/30 bg-lilac/20 p-4 text-sm font-bold text-plum" role="status" aria-live="polite">
+          <div className="flex items-center gap-3">
+            {isPublishing && uploadStage !== 'error' && uploadStage !== 'done' ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+            <span>{uploadMessage || 'Preparando publicação'}</span>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/70">
+            <div
+              className="h-full rounded-full bg-coral transition-all"
+              style={{
+                width:
+                  uploadStage === 'creating'
+                    ? '14%'
+                    : uploadStage === 'cover'
+                      ? '30%'
+                      : uploadStage === 'pdf'
+                        ? '44%'
+                        : uploadStage === 'pages'
+                          ? '62%'
+                          : uploadStage === 'saving'
+                            ? '78%'
+                            : uploadStage === 'publishing'
+                              ? '92%'
+                              : uploadStage === 'done'
+                                ? '100%'
+                                : '100%',
+              }}
+            />
+          </div>
         </div>
       ) : null}
 
