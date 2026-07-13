@@ -147,15 +147,16 @@ export default function Home() {
 function HeroStorybookImage() {
   return (
     <div className="relative mx-auto w-full max-w-[590px] md:justify-self-end">
-      <div className="absolute inset-x-6 bottom-6 top-8 rounded-[45%] bg-[radial-gradient(circle_at_48%_45%,rgba(255,231,163,.42),rgba(249,196,210,.32)_42%,rgba(183,155,239,.24)_70%,transparent_100%)] blur-2xl" aria-hidden="true" />
+      <div className="absolute inset-x-8 bottom-5 top-10 rounded-[45%] bg-[radial-gradient(circle_at_50%_52%,rgba(255,231,163,.34),rgba(249,196,210,.22)_42%,rgba(183,155,239,.18)_70%,transparent_100%)]" aria-hidden="true" />
       <Image
         alt="Livro aberto com castelo, árvore, flores e borboleta"
-        className="relative h-auto w-full drop-shadow-[0_30px_48px_rgba(59,36,107,.18)]"
-        height={264}
+        className="relative h-auto w-full object-contain drop-shadow-[0_26px_38px_rgba(59,36,107,.16)]"
+        height={2100}
         priority
+        quality={100}
         sizes="(min-width: 768px) 45vw, 92vw"
-        src="/brand/hero-storybook.png"
-        width={504}
+        src="/brand/hero-storybook.svg"
+        width={3600}
       />
     </div>
   );
