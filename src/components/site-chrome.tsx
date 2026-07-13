@@ -18,7 +18,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-white/70 bg-white/82 shadow-[0_10px_35px_rgba(59,36,107,.06)] backdrop-blur-xl">
-        <nav className={`${shell} flex h-[66px] items-center justify-between gap-4`}>
+        <nav className={`${shell} flex h-[72px] items-center justify-between gap-4 lg:h-[82px]`}>
           <Logo />
           <div className="hidden items-center gap-2 rounded-full bg-white/68 p-1 text-sm font-black text-plum ring-1 ring-white/80 md:flex">
             <Link className="rounded-full px-4 py-2 transition hover:bg-cream hover:text-coral" href="/biblioteca">
