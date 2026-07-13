@@ -14,9 +14,12 @@ import {
   UploadCloud,
   WandSparkles,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useForm, type FieldErrors, type FieldPath, type Resolver } from 'react-hook-form';
+import { z } from 'zod';
 import { saveStoryAction } from '@/app/hm-admin/(protected)/actions';
 import type { AdminCategorySummary, EditableStory } from '@/lib/admin-queries';
+import { useToast } from '@/components/ui/toast';
 
 type AdminStoryFormProps = {
   categories: AdminCategorySummary[];
@@ -53,6 +56,21 @@ type ZipEntry = {
   uncompressedSize: number;
 };
 
+type StoryFormValues = {
+  ageRange: string;
+  author: string;
+  category: string;
+  description: string;
+  fullDescription: string;
+  hasColoringVersion: boolean;
+  isFeatured: boolean;
+  isStoryOfWeek: boolean;
+  readingMinutes: number;
+  status: 'draft' | 'published';
+  theme: string;
+  title: string;
+};
+
 declare global {
   interface Window {
     pdfjsLib?: PdfJs;
@@ -74,6 +92,48 @@ const pdfLimit = 80 * 1024 * 1024;
 const archiveLimit = 120 * 1024 * 1024;
 const pdfScriptUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const pdfWorkerUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const storyFormSchema = z.object({
+  ageRange: z.string().min(1, 'Escolha a faixa etária.'),
+  author: z.string().trim().min(2, 'Informe o autor.'),
+  category: z.string().min(1, 'Escolha uma categoria.'),
+  description: z.string().trim().min(10, 'Escreva uma descrição curta com pelo menos 10 caracteres.'),
+  fullDescription: z.string().default(''),
+  hasColoringVersion: z.boolean(),
+  isFeatured: z.boolean(),
+  isStoryOfWeek: z.boolean(),
+  readingMinutes: z.coerce.number().int('Informe um número inteiro.').min(1, 'O tempo mínimo é 1 minuto.').max(60, 'O tempo máximo é 60 minutos.'),
+  status: z.enum(['draft', 'published']),
+  theme: z.string().trim().min(2, 'Informe o tema principal.'),
+  title: z.string().trim().min(3, 'Informe o título da história.'),
+});
+
+const fieldsByStep: Record<number, Array<FieldPath<StoryFormValues>>> = {
+  1: ['title', 'description', 'author', 'category', 'ageRange'],
+  2: [],
+  3: ['title', 'description', 'author', 'category', 'ageRange', 'readingMinutes', 'theme', 'status'],
+};
+
+const zodStoryResolver = async (values: StoryFormValues) => {
+  const result = storyFormSchema.safeParse(values);
+
+  if (result.success) {
+    return { errors: {}, values: result.data as StoryFormValues };
+  }
+
+  return {
+    errors: result.error.issues.reduce<FieldErrors<StoryFormValues>>((accumulator, issue) => {
+      const field = issue.path[0] as FieldPath<StoryFormValues> | undefined;
+
+      if (field) {
+        accumulator[field] = { message: issue.message, type: issue.code };
+      }
+
+      return accumulator;
+    }, {}),
+    values: {},
+  };
+};
 
 function formatSize(size: number) {
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
@@ -320,6 +380,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<string[]>([]);
   const [isImporting, setIsImporting] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [importSummary, setImportSummary] = useState('');
   const [cover, setCover] = useState<ImportedPage | null>(
     story?.coverUrl ? { file: null, id: 'saved-cover', name: 'Capa atual', url: story.coverUrl } : null,
@@ -338,10 +399,45 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
   const coverInputRef = useRef<HTMLInputElement>(null);
   const pagesInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const allowSubmitRef = useRef(false);
+  const { toast } = useToast();
 
   const defaultCategory = story?.category ?? categories[0]?.name ?? 'Aventura';
   const canGoBack = currentStep > 0;
   const canGoNext = currentStep < steps.length - 1;
+  const defaultValues = useMemo<StoryFormValues>(
+    () => ({
+      ageRange: story?.ageRange ?? '4 a 6 anos',
+      author: story?.author ?? 'Histórias da Mamá',
+      category: defaultCategory,
+      description: story?.description ?? '',
+      fullDescription: story?.fullDescription ?? story?.description ?? '',
+      hasColoringVersion: Boolean(story?.hasColoringVersion),
+      isFeatured: Boolean(story?.isFeatured),
+      isStoryOfWeek: Boolean(story?.isStoryOfWeek),
+      readingMinutes: story?.readingMinutes ?? 5,
+      status: story?.status === 'published' ? 'published' : 'draft',
+      theme: story?.theme ?? 'imaginação',
+      title: story?.title ?? '',
+    }),
+    [defaultCategory, story],
+  );
+  const {
+    formState: { errors: formErrors },
+    getValues,
+    register,
+    setFocus,
+    trigger,
+    watch,
+  } = useForm<StoryFormValues>({
+    defaultValues,
+    mode: 'onTouched',
+    resolver: zodStoryResolver,
+    shouldFocusError: true,
+    shouldUnregister: false,
+  });
+  const selectedStatus = watch('status');
 
   const stepSummary = useMemo(
     () => [
@@ -354,6 +450,107 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
   );
 
   const importedPageFiles = pages.map((page) => page.file).filter((file): file is File => Boolean(file));
+
+  function collectCurrentErrors(fields?: Array<FieldPath<StoryFormValues>>) {
+    const result = storyFormSchema.safeParse(getValues());
+    const allowedFields = fields ? new Set(fields) : null;
+
+    if (result.success) {
+      return {};
+    }
+
+    return result.error.issues.reduce<FieldErrors<StoryFormValues>>((accumulator, issue) => {
+      const field = issue.path[0] as FieldPath<StoryFormValues> | undefined;
+
+      if (field && (!allowedFields || allowedFields.has(field))) {
+        accumulator[field] = { message: issue.message, type: issue.code };
+      }
+
+      return accumulator;
+    }, {});
+  }
+
+  function getFirstErrorStep(fieldErrors: FieldErrors<StoryFormValues>) {
+    const errorNames = Object.keys(fieldErrors) as Array<FieldPath<StoryFormValues>>;
+
+    if (errorNames.some((name) => fieldsByStep[1].includes(name))) {
+      return 1;
+    }
+
+    return 3;
+  }
+
+  function focusFirstError(fieldErrors: FieldErrors<StoryFormValues>) {
+    const firstError = (Object.keys(fieldErrors) as Array<FieldPath<StoryFormValues>>)[0];
+
+    if (firstError) {
+      setTimeout(() => setFocus(firstError), 50);
+    }
+  }
+
+  async function validateStep(step: number) {
+    const fields = fieldsByStep[step];
+    const valid = fields.length > 0 ? await trigger(fields) : true;
+
+    if (!valid) {
+      const currentErrors = collectCurrentErrors(fields);
+      toast({ title: 'Preencha os campos obrigatórios' });
+      focusFirstError(currentErrors);
+    }
+
+    return valid;
+  }
+
+  async function goToNextStep() {
+    const valid = await validateStep(currentStep);
+
+    if (!valid) {
+      return;
+    }
+
+    setCurrentStep((step) => step + 1);
+  }
+
+  async function handlePublish() {
+    const valid = await trigger();
+
+    if (!valid) {
+      const currentErrors = collectCurrentErrors();
+      const firstErrorStep = getFirstErrorStep(currentErrors);
+      setCurrentStep(firstErrorStep);
+      toast({ title: 'Preencha os campos obrigatórios' });
+      focusFirstError(currentErrors);
+      return;
+    }
+
+    allowSubmitRef.current = true;
+    setIsPublishing(true);
+    toast({
+      title: selectedStatus === 'draft' ? 'Rascunho pronto para salvar' : 'História pronta para publicar',
+      description: 'Enviando ao painel e redirecionando para a lista de histórias.',
+    });
+    formRef.current?.requestSubmit();
+  }
+
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    if (!allowSubmitRef.current) {
+      event.preventDefault();
+    }
+  }
+
+  function fieldClass(name: FieldPath<StoryFormValues>) {
+    return `rounded-2xl border px-4 py-3 outline-none transition ${
+      formErrors[name]
+        ? 'border-rose-400 bg-rose/10 focus:border-rose-500 focus:ring-4 focus:ring-rose/25'
+        : 'border-slate-200 focus:border-plum focus:ring-4 focus:ring-lilac/25'
+    }`;
+  }
+
+  function FieldError({ name }: { name: FieldPath<StoryFormValues> }) {
+    const message = formErrors[name]?.message;
+
+    return message ? <span className="text-sm font-bold text-rose-700">{String(message)}</span> : null;
+  }
 
   useEffect(() => {
     return () => {
@@ -537,7 +734,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
   }
 
   return (
-    <form action={saveStoryAction} className="grid gap-6 rounded-[2rem] bg-white p-6 shadow-soft md:p-8">
+    <form action={saveStoryAction} className="grid gap-6 rounded-[2rem] bg-white p-6 shadow-soft md:p-8" onSubmit={handleFormSubmit} ref={formRef} noValidate>
       {story?.id ? <input name="id" type="hidden" value={story.id} /> : null}
       <input name="cover" ref={coverInputRef} type="file" className="hidden" />
       <input name="pageImages" ref={pagesInputRef} type="file" className="hidden" multiple />
@@ -631,87 +828,87 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
         <label className="grid gap-2 text-sm font-black text-ink">
           Título da história
           <input
-            className="rounded-2xl border border-slate-200 px-4 py-3"
-            defaultValue={story?.title}
-            name="title"
+            className={fieldClass('title')}
             placeholder="Ex.: O Chapéu do Leo"
-            required
+            {...register('title')}
           />
+          <FieldError name="title" />
         </label>
 
         <label className="grid gap-2 text-sm font-black text-ink">
           Descrição curta
           <textarea
-            className="min-h-24 rounded-2xl border border-slate-200 px-4 py-3"
-            defaultValue={story?.description}
-            name="description"
+            className={`min-h-24 ${fieldClass('description')}`}
             placeholder="Resumo curto para famílias, professores e crianças"
-            required
+            {...register('description')}
           />
+          <FieldError name="description" />
         </label>
 
         <label className="grid gap-2 text-sm font-black text-ink">
           Descrição completa
           <textarea
             className="min-h-28 rounded-2xl border border-slate-200 px-4 py-3"
-            defaultValue={story?.fullDescription ?? story?.description}
-            name="fullDescription"
             placeholder="Texto mais completo para a página da história"
+            {...register('fullDescription')}
           />
         </label>
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm font-black text-ink">
             Autor
-            <input className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.author ?? 'Histórias da Mamá'} name="author" required />
+            <input className={fieldClass('author')} {...register('author')} />
+            <FieldError name="author" />
           </label>
           <label className="grid gap-2 text-sm font-black text-ink">
             Categoria
-            <select className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={defaultCategory} name="category">
+            <select className={fieldClass('category')} {...register('category')}>
               {categories.map((category) => (
                 <option key={category.id}>{category.name}</option>
               ))}
             </select>
+            <FieldError name="category" />
           </label>
           <label className="grid gap-2 text-sm font-black text-ink">
             Idade indicada
-            <select className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.ageRange ?? '4 a 6 anos'} name="ageRange">
+            <select className={fieldClass('ageRange')} {...register('ageRange')}>
               <option>2 a 4 anos</option>
               <option>4 a 6 anos</option>
               <option>6 a 8 anos</option>
               <option>8 a 10 anos</option>
               <option>10+ anos</option>
             </select>
+            <FieldError name="ageRange" />
           </label>
           <label className="grid gap-2 text-sm font-black text-ink">
             Tempo de leitura em minutos
             <input
-              className="rounded-2xl border border-slate-200 px-4 py-3"
-              defaultValue={story?.readingMinutes ?? 5}
+              className={fieldClass('readingMinutes')}
               max={60}
               min={1}
-              name="readingMinutes"
-              required
               type="number"
+              {...register('readingMinutes', { valueAsNumber: true })}
             />
+            <FieldError name="readingMinutes" />
           </label>
           <label className="grid gap-2 text-sm font-black text-ink">
             Tema principal
-            <input className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.theme ?? 'imaginação'} name="theme" required />
+            <input className={fieldClass('theme')} {...register('theme')} />
+            <FieldError name="theme" />
           </label>
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
           <label className="flex items-center gap-3 rounded-2xl bg-aqua/45 p-4 text-sm font-black text-ink">
-            <input className="h-5 w-5" defaultChecked={story?.hasColoringVersion} name="hasColoringVersion" type="checkbox" />
+            <input className="h-5 w-5" type="checkbox" {...register('hasColoringVersion')} />
             Versão para colorir
           </label>
           <label className="flex items-center gap-3 rounded-2xl bg-sun/45 p-4 text-sm font-black text-ink">
-            <input className="h-5 w-5" defaultChecked={story?.isFeatured} name="isFeatured" type="checkbox" />
+            <input className="h-5 w-5" type="checkbox" {...register('isFeatured')} />
             Destaque na Home
           </label>
           <label className="flex items-center gap-3 rounded-2xl bg-rose/45 p-4 text-sm font-black text-ink">
-            <input className="h-5 w-5" defaultChecked={story?.isStoryOfWeek} name="isStoryOfWeek" type="checkbox" />
+            <input className="h-5 w-5" type="checkbox" {...register('isStoryOfWeek')} />
             História da semana
           </label>
         </div>
@@ -858,7 +1055,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
               Salvar rascunho
             </span>
             <p className="mt-2 text-sm leading-6 text-slate-600">A história fica guardada no painel e não aparece para visitantes.</p>
-            <input className="mt-4 h-5 w-5" defaultChecked={story?.status !== 'published'} name="status" type="radio" value="draft" />
+            <input className="mt-4 h-5 w-5" type="radio" value="draft" {...register('status')} />
           </label>
           <label className="rounded-3xl border border-slate-200 p-5">
             <span className="flex items-center gap-2 font-black text-ink">
@@ -866,7 +1063,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
               Publicar
             </span>
             <p className="mt-2 text-sm leading-6 text-slate-600">A história aparece na biblioteca pública após salvar.</p>
-            <input className="mt-4 h-5 w-5" defaultChecked={story?.status === 'published'} name="status" type="radio" value="published" />
+            <input className="mt-4 h-5 w-5" type="radio" value="published" {...register('status')} />
           </label>
         </div>
       </section>
@@ -877,12 +1074,12 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
         </button>
         <div className="flex flex-wrap gap-3">
           {canGoNext ? (
-            <button className="rounded-full bg-ink px-6 py-3 font-black text-white" onClick={() => setCurrentStep((step) => step + 1)} type="button">
+            <button className="rounded-full bg-ink px-6 py-3 font-black text-white" onClick={goToNextStep} type="button">
               Próxima etapa
             </button>
           ) : (
-            <button className="rounded-full bg-ink px-8 py-4 text-lg font-black text-white shadow-soft" type="submit">
-              Publicar história
+            <button className="rounded-full bg-ink px-8 py-4 text-lg font-black text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-60" disabled={isPublishing} onClick={handlePublish} type="button">
+              {isPublishing ? (selectedStatus === 'draft' ? 'Salvando...' : 'Publicando...') : selectedStatus === 'draft' ? 'Salvar rascunho' : 'Publicar história'}
             </button>
           )}
         </div>
