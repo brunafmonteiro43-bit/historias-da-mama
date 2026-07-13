@@ -1,6 +1,7 @@
 'use client';
 
 import { BookOpen, ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 import type { Story } from '@/types';
@@ -39,7 +40,7 @@ export function StoryCarousel({ stories }: StoryCarouselProps) {
         {stories.map((story) => (
           <Link
             className="group relative min-w-[255px] max-w-[255px] snap-start overflow-hidden rounded-[1.35rem] border border-white/90 bg-white shadow-[0_12px_34px_rgba(59,36,107,.08)] transition duration-300 hover:-translate-y-2 hover:shadow-[0_28px_65px_rgba(59,36,107,.16)] sm:min-w-[300px] sm:max-w-[300px]"
-            href={`/historias/${story.slug}`}
+            href={`/historias/${story.slug}/ler`}
             key={story.slug}
           >
             <span className="absolute bottom-0 left-0 top-0 z-10 w-2 bg-gradient-to-b from-white/70 via-plum/10 to-plum/20 opacity-80" aria-hidden="true" />
@@ -79,6 +80,23 @@ export function StoryCarousel({ stories }: StoryCarouselProps) {
 
 export function StoryCover({ story }: { story: Story }) {
   const slug = story.slug;
+
+  if (story.coverUrl) {
+    return (
+      <div className="relative h-52 overflow-hidden bg-cream sm:h-56">
+        <Image
+          alt={`Capa de ${story.title}`}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          height={420}
+          sizes="(min-width: 1024px) 300px, 85vw"
+          src={story.coverUrl}
+          unoptimized
+          width={300}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-plum/16 via-transparent to-white/8 opacity-70" />
+      </div>
+    );
+  }
 
   if (slug.includes('pintinho')) {
     return <ChickCover />;

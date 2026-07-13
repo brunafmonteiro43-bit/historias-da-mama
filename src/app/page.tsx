@@ -2,9 +2,11 @@ import { BookOpen, Heart, Library, Send, Smile, Sparkles, UploadCloud } from 'lu
 import Image from 'next/image';
 import Link from 'next/link';
 import { StoryCarousel } from '@/components/story-carousel';
-import { categories, publishedStories } from '@/data/stories';
+import { getPublicCategories, getPublicStories } from '@/lib/public-data';
 
 const shell = 'mx-auto w-full max-w-[1240px] px-5 sm:px-6 lg:px-8';
+
+export const dynamic = 'force-dynamic';
 
 const benefitItems = [
   { icon: BookOpen, title: 'Histórias encantadoras', text: 'Narrativas selecionadas com muito carinho.', color: 'bg-lilac/20 text-plum' },
@@ -13,7 +15,10 @@ const benefitItems = [
   { icon: Sparkles, title: 'Leitura divertida', text: 'Ambiente lúdico, leve e feito para crianças.', color: 'bg-aqua/30 text-teal-700' },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const [categories, publishedStories] = await Promise.all([getPublicCategories(), getPublicStories()]);
+  const surpriseStory = publishedStories[0]?.slug ? `/historias/${publishedStories[0].slug}` : '/biblioteca';
+
   return (
     <main className="overflow-x-clip bg-[#fffaf2]">
       <section className="relative isolate overflow-hidden bg-[linear-gradient(118deg,#fff9ed_0%,#fff4fb_43%,#f0ecff_100%)] pb-20 pt-12 [contain:paint] md:pb-24 md:pt-16">
@@ -40,7 +45,7 @@ export default function Home() {
               </Link>
               <Link
                 className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-coral/25 bg-white/82 px-7 py-3.5 text-base font-black text-plum shadow-[0_12px_30px_rgba(59,36,107,.08)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-coral hover:bg-white hover:text-coral"
-                href={`/historias/${publishedStories[0]?.slug ?? ''}`}
+                href={surpriseStory}
               >
                 <Sparkles className="h-5 w-5 text-coral transition group-hover:scale-110" />
                 Surpreenda-me

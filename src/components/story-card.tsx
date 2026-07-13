@@ -32,7 +32,7 @@ export function StoryCard({ story }: StoryCardProps) {
         <div className="mt-auto flex items-center gap-2">
           <Link
             className="inline-flex flex-1 items-center justify-center rounded-full bg-plum px-4 py-3 text-sm font-black text-white transition hover:bg-coral focus:outline-none focus:ring-4 focus:ring-lilac/35"
-            href={`/historias/${story.slug}`}
+            href={`/historias/${story.slug}/ler`}
           >
             Ler agora
           </Link>

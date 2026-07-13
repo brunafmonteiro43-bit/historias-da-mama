@@ -5,6 +5,7 @@ export type Story = {
   slug: string;
   title: string;
   description: string;
+  fullDescription?: string;
   author: string;
   category: string;
   categorySlug: string;
@@ -15,11 +16,15 @@ export type Story = {
   hasColoringVersion: boolean;
   status: StoryStatus;
   popular: boolean;
+  storyOfWeek?: boolean;
   color: string;
   accentColor: string;
   createdAt: string;
   readCount: number;
   pages: string[];
+  pageImages?: Array<string | null>;
+  coverUrl?: string | null;
+  pdfUrl?: string | null;
 };
 
 export type Category = {

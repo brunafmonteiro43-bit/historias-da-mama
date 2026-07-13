@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getPublicStoryBySlug } from '@/lib/public-data';
-import { StoryReader } from './story-reader';
+import { StoryReader } from '../story-reader';
 
 export const dynamicParams = true;
 export const dynamic = 'force-dynamic';
@@ -8,17 +8,13 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const { story } = await getPublicStoryBySlug(params.slug);
 
-  if (!story) {
-    return { title: 'História não encontrada' };
-  }
-
   return {
-    title: story.title,
-    description: story.description,
+    title: story ? `Ler ${story.title}` : 'Leitor',
+    description: story?.description,
   };
 }
 
-export default async function StoryPage({ params }: { params: { slug: string } }) {
+export default async function StoryReadPage({ params }: { params: { slug: string } }) {
   const { nextStory, story } = await getPublicStoryBySlug(params.slug);
 
   if (!story) {

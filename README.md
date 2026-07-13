@@ -1,124 +1,131 @@
 # Histórias da Mamá
 
-Biblioteca infantil pública com leitura livre para visitantes e painel administrativo privado protegido por Supabase Auth.
+Site infantil público com um painel secreto para cadastrar e publicar histórias sem alterar código, sem commit e sem novo deploy.
 
-## Identidade visual
+## Como funciona
 
-A marca usa o conceito de um livro aberto dentro de um balão de pensamento. O balão representa imaginação, sonhos e histórias; o livro representa leitura; e os pequenos elementos mágicos, como estrelas, castelo, árvore, nuvens, flores e borboleta, reforçam o universo infantil premium.
+- Visitantes acessam `/`, `/biblioteca`, `/historias/[slug]` e `/historias/[slug]/ler`.
+- Administradoras acessam somente `/hm-admin`.
+- O login usa Supabase Auth.
+- As histórias, categorias e páginas ficam no PostgreSQL do Supabase.
+- Capas, PDFs e imagens das páginas ficam no Supabase Storage.
+- Ao publicar uma história no painel, ela aparece automaticamente na Home, Biblioteca, categoria e páginas públicas.
 
-Paleta principal:
+## Variáveis de ambiente
 
-- Roxo profundo: `#3B246B`
-- Lilás suave: `#B79BEF`
-- Rosa coral: `#F36F91`
-- Azul céu pastel: `#BFEAF5`
-- Verde água: `#8FD8CF`
-- Amarelo manteiga: `#FFE7A3`
-- Creme claro: `#FFF8EA`
-- Branco: `#FFFFFF`
-- Cinza escuro: `#273142`
-
-Uso correto da marca:
-
-- Use a versão horizontal no cabeçalho e em contextos compactos.
-- Use a versão vertical em telas institucionais, login e materiais com mais espaço.
-- Use apenas o símbolo do balão com livro para favicon, ícone e placeholders.
-- Em fundos escuros, use a logo clara e mantenha contraste alto.
-- Evite excesso de elementos decorativos; a identidade deve continuar limpa, delicada e profissional.
-
-Para trocar a logo futuramente, atualize `src/components/brand-illustration.tsx`, `src/components/logo.tsx`, `public/brand/logo.svg` e `public/icons/icon.svg`. O restante do site reutiliza esses pontos centrais.
-
-## Acesso correto
-
-- Visitantes acessam a home, `/biblioteca` e histórias publicadas sem login.
-- Não existe conta de leitor, perfil público, favoritos ou comentários.
-- Somente administradores acessam `/admin` com e-mail e senha.
-- `/admin` mostra apenas a tela de login quando não há sessão válida.
-- Após login válido e autorização na tabela `admins`, o usuário é enviado para `/admin/dashboard`.
-- Rotas como `/admin/dashboard`, `/admin/stories`, `/admin/stories/new`, `/admin/stories/[id]/edit` e `/admin/categories` são protegidas por middleware e verificação server-side.
-
-## Instalação
-
-```bash
-npm install
-cp .env.example .env.local
-npm run dev
-```
-
-Variáveis obrigatórias:
+Crie `.env.local` com:
 
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-chave-anon
+NEXT_PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=SUA_CHAVE_ANON
 ```
 
-## Configurar Supabase
+Na Vercel, crie as mesmas variáveis em Project Settings > Environment Variables.
 
-1. Crie um projeto no Supabase.
-2. Abra o SQL Editor.
-3. Execute todo o arquivo `supabase/schema.sql`.
-4. Em Authentication, habilite login por e-mail e senha.
-5. Em Storage, confirme que o bucket público `stories` existe.
-6. Confirme que as políticas RLS foram criadas para `stories`, `story_pages`, `categories`, `authors`, `admins` e `storage.objects`.
+## Migrations do Supabase
 
-## Criar o primeiro administrador
+1. Abra o projeto no Supabase.
+2. Vá em SQL Editor.
+3. Execute todo o arquivo:
 
-1. No Supabase, acesse Authentication > Users.
+```text
+supabase/schema.sql
+```
+
+Esse arquivo cria/revisa:
+
+- `stories`
+- `story_pages`
+- `categories`
+- `admin_profiles`
+- `authors`
+- buckets `story-covers`, `story-pages`, `story-pdfs`
+- função `is_admin()`
+- políticas RLS para visitantes e administradoras
+
+## Criar o primeiro admin
+
+1. No Supabase, vá em Authentication > Users.
 2. Clique em Add user.
-3. Cadastre o e-mail e a senha da pessoa administradora.
+3. Cadastre e-mail e senha da administradora.
 4. Copie o `User UID`.
 5. No SQL Editor, execute:
 
 ```sql
-insert into public.admins (user_id, full_name)
+insert into public.admin_profiles (user_id, full_name)
 values ('COLE_O_USER_UID_AQUI', 'Nome da Administradora');
 ```
 
-Depois disso, esse usuário poderá entrar em `/admin`.
+Depois disso, a pessoa consegue entrar em `/hm-admin`.
 
-## Usar o painel
+## Testar cadastro e publicação
 
-1. Acesse `/admin`.
-2. Informe e-mail e senha do administrador.
-3. O sistema valida a sessão no Supabase Auth.
-4. O sistema chama `is_admin()` para confirmar autorização.
-5. Após sucesso, abre `/admin/dashboard`.
+1. Acesse `/hm-admin`.
+2. Faça login com o e-mail e senha criados no Supabase Auth.
+3. Entre em `/hm-admin/dashboard`.
+4. Clique em `Cadastrar nova história`.
+5. Preencha:
+   - título
+   - descrição curta
+   - descrição completa
+   - autor
+   - categoria
+   - faixa etária
+   - tempo de leitura
+   - tema principal
+   - capa
+   - PDF
+   - imagens das páginas
+   - destaque
+   - história da semana
+   - versão para colorir
+   - status
+6. Escolha `Salvar rascunho` ou `Publicar`.
+7. Clique em `Salvar / Publicar`.
+8. Confira:
+   - rascunho não aparece no site público
+   - publicada aparece na Home
+   - publicada aparece em `/biblioteca`
+   - publicada abre em `/historias/[slug]`
+   - leitor abre em `/historias/[slug]/ler`
 
-O painel inclui dashboard, lista de histórias, cadastro, edição, categorias e logout real com `supabase.auth.signOut()`.
+## Ações disponíveis no painel
 
-## Cadastrar uma história
+- salvar rascunho
+- publicar
+- editar
+- despublicar
+- excluir
+- upload de capa
+- upload de PDF
+- upload de imagens das páginas
+- preview de capa e páginas
+- reordenar páginas por arrastar e soltar
+- logout
 
-1. Entre no painel.
-2. Clique em “Cadastrar nova história”.
-3. Preencha informações básicas, capa e arquivos, páginas da história e publicação.
-4. Envie capa em PNG, JPG ou WEBP.
-5. Envie PDF opcional da história.
-6. Adicione textos e/ou imagens das páginas.
-7. Salve como rascunho ou publique.
+## Permissões
 
-## Publicar e despublicar
+Visitantes:
 
-Em `/admin/stories`, use a ação “Publicar” para tornar uma história visível na biblioteca pública. Use “Despublicar” para voltar a rascunho. Visitantes só conseguem visualizar registros com `status = 'published'`.
+- leem apenas histórias publicadas
+- leem páginas de histórias publicadas
+- leem arquivos dos buckets públicos
 
-## Storage
+Administradoras autorizadas:
 
-O bucket `stories` aceita PDF até 50 MB e PNG, JPG ou WEBP até 8 MB por imagem.
+- criam, editam, publicam, despublicam e excluem histórias
+- criam categorias
+- fazem upload e gestão dos arquivos nos buckets
 
-As políticas de storage permitem leitura pública dos arquivos e escrita apenas para administradores autenticados.
+## Comandos locais
 
-## Proteção de rotas
+```bash
+npm install
+npm run dev
+npm run lint
+npm run typecheck
+npm run build
+```
 
-A proteção acontece em duas camadas:
-
-- `middleware.ts` bloqueia acesso direto às rotas administrativas privadas.
-- `requireAdmin()` valida a sessão no servidor antes de renderizar dashboard, histórias, edição e categorias.
-
-As permissões do banco também protegem os dados:
-
-- Administradores podem criar, editar, publicar, despublicar e excluir histórias.
-- Visitantes só podem ler histórias publicadas e páginas ligadas a histórias publicadas.
-
-## Leitor público
-
-A página de história tem visual de livro aberto, miniaturas, botões de página anterior/próxima, zoom, tela cheia e link de volta para a biblioteca.
+Se o Supabase não estiver configurado, o site público usa dados demo para não quebrar, e o painel mostra aviso para configurar as variáveis.

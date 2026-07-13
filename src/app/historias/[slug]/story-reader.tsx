@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, Maximize, Minus, Plus, RotateCcw, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { ShareButton } from '@/components/share-button';
@@ -12,6 +13,8 @@ export function StoryReader({ nextStory, story }: { nextStory?: Story; story: St
   const [zoom, setZoom] = useState(1);
   const readerRef = useRef<HTMLElement>(null);
   const nextPage = story.pages[pageIndex + 1];
+  const pageImage = story.pageImages?.[pageIndex];
+  const nextPageImage = story.pageImages?.[pageIndex + 1];
 
   function goToPage(index: number) {
     setPageIndex(Math.max(0, Math.min(index, story.pages.length - 1)));
@@ -53,7 +56,7 @@ export function StoryReader({ nextStory, story }: { nextStory?: Story; story: St
               {story.category} · {story.ageRange} · {story.readingTime}
             </p>
             <h1 className="mt-3 max-w-4xl font-display text-4xl font-black leading-tight text-plum md:text-5xl">{story.title}</h1>
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-ink/75">{story.description}</p>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-ink/75">{story.fullDescription ?? story.description}</p>
             <p className="mt-3 font-black text-plum">Autor: {story.author}</p>
             <button
               className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-plum px-7 py-3.5 font-black text-white shadow-[0_16px_34px_rgba(59,36,107,.18)] transition hover:-translate-y-1 hover:bg-coral focus:outline-none focus:ring-4 focus:ring-white/55"
@@ -119,13 +122,19 @@ export function StoryReader({ nextStory, story }: { nextStory?: Story; story: St
               <article className="reader-page min-h-[360px] border-b border-amber-100 p-8 md:min-h-[430px] md:border-b-0 md:border-r md:p-12" style={{ transform: `scale(${zoom})`, transformOrigin: 'center' }}>
                 <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Página {pageIndex + 1}</p>
                 <h3 className="mt-4 font-display text-3xl font-black text-plum">{story.title}</h3>
-                <p className="mt-8 text-xl leading-10 text-slate-700">{story.pages[pageIndex]}</p>
+                {pageImage ? (
+                  <Image alt={`Página ${pageIndex + 1} de ${story.title}`} className="mt-6 max-h-[520px] w-full rounded-2xl object-contain" height={900} src={pageImage} unoptimized width={680} />
+                ) : (
+                  <p className="mt-8 text-xl leading-10 text-slate-700">{story.pages[pageIndex]}</p>
+                )}
               </article>
               <article className="reader-page min-h-[360px] p-8 md:min-h-[430px] md:p-12" style={{ transform: `scale(${zoom})`, transformOrigin: 'center' }}>
                 <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">
                   {nextPage ? `Página ${pageIndex + 2}` : 'Fim'}
                 </p>
-                {nextPage ? (
+                {nextPageImage ? (
+                  <Image alt={`Página ${pageIndex + 2} de ${story.title}`} className="mt-6 max-h-[520px] w-full rounded-2xl object-contain" height={900} src={nextPageImage} unoptimized width={680} />
+                ) : nextPage ? (
                   <p className="mt-16 text-xl leading-10 text-slate-700">{nextPage}</p>
                 ) : (
                   <div className="grid h-full place-items-center text-center">
@@ -168,7 +177,7 @@ export function StoryReader({ nextStory, story }: { nextStory?: Story; story: St
           </div>
           <Link
             className="inline-flex min-h-12 items-center justify-center rounded-full bg-plum px-6 py-3 font-black text-white transition hover:bg-coral"
-            href={nextStory ? `/historias/${nextStory.slug}` : '/biblioteca'}
+            href={nextStory ? `/historias/${nextStory.slug}/ler` : '/biblioteca'}
           >
             {nextStory ? 'Ler próxima história' : 'Ver biblioteca'}
           </Link>
