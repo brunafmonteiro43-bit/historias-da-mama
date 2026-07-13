@@ -12,10 +12,10 @@ export default async function AdminLoginPage() {
   const isSupabaseConfigured = getSupabaseConfig().isConfigured;
 
   return (
-    <main className="min-h-[calc(100vh-180px)] bg-[linear-gradient(135deg,#FFF8EA_0%,#ECFBFF_45%,#FFF0F5_100%)] px-5 py-12">
+    <main className="min-h-[calc(100vh-180px)] bg-[linear-gradient(135deg,#fffaf0_0%,#fff5fa_48%,#f1ecff_100%)] px-5 py-12">
       <section className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1fr_440px]">
-        <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/78 p-8 shadow-soft backdrop-blur md:p-12">
-          <div className="absolute right-0 top-0 h-32 w-32 rounded-bl-[5rem] bg-sun/70" />
+        <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/82 p-8 shadow-soft backdrop-blur md:p-12">
+          <div className="absolute right-0 top-0 h-32 w-32 rounded-bl-[5rem] bg-sun/55" />
           <Logo orientation="vertical" />
           <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-plum px-4 py-2 text-sm font-black uppercase tracking-[0.18em] text-white">
             <ShieldCheck className="h-4 w-4" />

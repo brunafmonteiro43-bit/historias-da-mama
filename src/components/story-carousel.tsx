@@ -62,7 +62,7 @@ export function StoryCarousel({ stories }: StoryCarouselProps) {
   );
 }
 
-function StoryCover({ story }: { story: Story }) {
+export function StoryCover({ story }: { story: Story }) {
   const slug = story.slug;
 
   if (slug.includes('pintinho')) {

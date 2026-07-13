@@ -1,33 +1,24 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { BrandIllustration } from './brand-illustration';
 
 type LogoProps = {
   orientation?: 'horizontal' | 'vertical';
   tone?: 'light' | 'dark';
 };
 
-export function Logo({ orientation = 'horizontal', tone = 'dark' }: LogoProps) {
-  const textColor = tone === 'light' ? 'text-white' : 'text-plum';
-  const subTextColor = tone === 'light' ? 'text-white/72' : 'text-ink/70';
+export function Logo({ orientation = 'horizontal' }: LogoProps) {
+  const sizeClass = orientation === 'vertical' ? 'h-auto w-[188px]' : 'h-auto w-[150px]';
 
   return (
-    <Link
-      aria-label="Histórias da Mamá"
-      className={orientation === 'vertical' ? 'inline-flex flex-col items-center gap-2 text-center' : 'flex items-center gap-2.5'}
-      href="/"
-    >
-      <BrandIllustration className={orientation === 'vertical' ? 'h-28 w-36' : 'h-11 w-12'} compact title="Logo Histórias da Mamá" />
-      <span className={orientation === 'vertical' ? '' : 'grid leading-none'}>
-        <span className={`font-display text-xl font-black tracking-normal ${textColor}`}>Histórias</span>
-        <span className={`font-display text-lg font-black tracking-normal ${orientation === 'vertical' ? 'text-coral' : textColor}`}>
-          da Mamá
-        </span>
-        {orientation === 'vertical' ? (
-          <span className={`mt-1 block text-[0.62rem] font-black uppercase tracking-[0.24em] ${subTextColor}`}>
-            Imaginar, aprender e se encantar
-          </span>
-        ) : null}
-      </span>
+    <Link aria-label="Histórias da Mamá" className="inline-flex items-center" href="/">
+      <Image
+        alt="Histórias da Mamá"
+        className={sizeClass}
+        height={53}
+        priority
+        src="/brand/logo-compact-clean.png"
+        width={174}
+      />
     </Link>
   );
 }

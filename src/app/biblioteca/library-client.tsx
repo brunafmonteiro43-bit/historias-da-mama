@@ -1,8 +1,7 @@
 'use client';
 
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { BookOpen, Search, SlidersHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { BrandIllustration } from '@/components/brand-illustration';
 import { StoryCard } from '@/components/story-card';
 import type { Category, Story } from '@/types';
 
@@ -49,17 +48,20 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
   }, [ageRange, category, query, sort, stories]);
 
   return (
-    <main className="mx-auto max-w-7xl px-5 py-12">
-      <section className="overflow-hidden rounded-[2rem] bg-white p-6 shadow-soft ring-1 ring-lilac/20 md:p-8">
-        <div className="grid items-center gap-8 lg:grid-cols-[1fr_260px]">
+    <main className="mx-auto w-full max-w-[1200px] px-5 py-12 sm:px-6 lg:px-8">
+      <section className="overflow-hidden rounded-[1.35rem] border border-lilac/15 bg-white/95 p-6 shadow-[0_22px_70px_rgba(59,36,107,.10)] md:p-8">
+        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.2em] text-coral">Leitura livre</p>
-            <h1 className="mt-2 font-display text-5xl font-black text-plum">Biblioteca</h1>
+            <h1 className="mt-2 font-display text-4xl font-black text-plum md:text-5xl">Biblioteca</h1>
             <p className="mt-3 max-w-2xl leading-7 text-slate-600">
               Busque por título, filtre por categoria ou idade, e escolha a próxima história para ler agora.
             </p>
           </div>
-          <BrandIllustration className="hidden h-44 w-full lg:block" compact title="Símbolo da biblioteca Histórias da Mamá" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-sm font-black text-plum">
+            <BookOpen className="h-4 w-4" />
+            {stories.length} histórias publicadas
+          </div>
         </div>
 
         <div className="mt-7 grid gap-3 md:grid-cols-[1.4fr_.8fr_.8fr_.8fr]" id="categorias">
@@ -76,7 +78,7 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
 
           <select
             aria-label="Filtrar por categoria"
-            className="rounded-2xl border border-lilac/35 bg-skyPastel/25 px-4 py-3 text-plum"
+            className="rounded-2xl border border-lilac/35 bg-skyPastel/25 px-4 py-3 text-plum outline-none focus:border-plum focus:ring-4 focus:ring-lilac/25"
             onChange={(event) => setCategory(event.target.value)}
             value={category}
           >
@@ -90,7 +92,7 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
 
           <select
             aria-label="Filtrar por idade"
-            className="rounded-2xl border border-lilac/35 bg-rose/30 px-4 py-3 text-plum"
+            className="rounded-2xl border border-lilac/35 bg-rose/30 px-4 py-3 text-plum outline-none focus:border-plum focus:ring-4 focus:ring-lilac/25"
             onChange={(event) => setAgeRange(event.target.value)}
             value={ageRange}
           >
@@ -102,7 +104,7 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
 
           <select
             aria-label="Ordenar histórias"
-            className="rounded-2xl border border-lilac/35 bg-sun/35 px-4 py-3 text-plum"
+            className="rounded-2xl border border-lilac/35 bg-sun/35 px-4 py-3 text-plum outline-none focus:border-plum focus:ring-4 focus:ring-lilac/25"
             onChange={(event) => setSort(event.target.value as SortMode)}
             value={sort}
           >
@@ -125,9 +127,11 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
           ))}
         </section>
       ) : (
-        <section className="mt-8 rounded-[2rem] bg-white p-10 text-center shadow-soft ring-1 ring-lilac/20">
-          <BrandIllustration className="mx-auto h-44 w-56" compact title="Nenhuma história encontrada" />
-          <h2 className="mt-3 font-display text-3xl font-black text-plum">Nenhuma história encontrada</h2>
+        <section className="mt-8 rounded-[1.35rem] bg-white p-10 text-center shadow-[0_18px_55px_rgba(59,36,107,.09)] ring-1 ring-lilac/15">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-rose/35 text-plum">
+            <Search className="h-8 w-8" />
+          </div>
+          <h2 className="mt-4 font-display text-3xl font-black text-plum">Nenhuma história encontrada</h2>
           <p className="mt-3 text-slate-600">Tente remover algum filtro ou buscar por outro título.</p>
         </section>
       )}

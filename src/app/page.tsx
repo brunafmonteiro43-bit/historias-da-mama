@@ -1,4 +1,5 @@
 import { BookOpen, Heart, Library, Send, Smile, Sparkles, UploadCloud } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { StoryCarousel } from '@/components/story-carousel';
 import { categories, publishedStories } from '@/data/stories';
@@ -15,25 +16,27 @@ const benefitItems = [
 export default function Home() {
   return (
     <main className="overflow-x-clip">
-      <section className="relative overflow-hidden bg-[radial-gradient(circle_at_78%_24%,rgba(183,155,239,.22),transparent_30%),radial-gradient(circle_at_92%_78%,rgba(255,231,163,.36),transparent_26%),linear-gradient(125deg,#fffaf0_0%,#fff5f9_50%,#f2ecff_100%)] pb-20 pt-12 md:pb-24 md:pt-14">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <span className="absolute right-[18%] top-16 h-14 w-24 rounded-full bg-white/45 blur-sm" />
-          <span className="absolute left-[48%] top-24 h-3 w-3 rounded-full bg-sun" />
-          <span className="absolute right-[8%] top-28 h-4 w-4 rounded-full bg-sun/80" />
-          <span className="absolute left-[33%] top-48 h-2 w-2 rounded-full bg-coral/70" />
+      <section className="relative overflow-hidden bg-[linear-gradient(120deg,#fffaf0_0%,#fff5fa_46%,#f1ecff_100%)] pb-20 pt-14 md:pb-24 md:pt-16">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute left-[8%] top-16 h-40 w-40 rounded-full bg-sun/25 blur-3xl" />
+          <div className="absolute right-[13%] top-10 h-72 w-72 rounded-full bg-lilac/25 blur-3xl" />
+          <div className="absolute bottom-0 right-[4%] h-64 w-80 rounded-full bg-rose/30 blur-3xl" />
         </div>
 
-        <div className={`${shell} relative z-10 grid items-center gap-10 md:grid-cols-[.92fr_1.08fr] lg:gap-12`}>
-          <div className="max-w-[560px]">
-            <h1 className="font-display text-4xl font-black leading-[1.06] text-plum sm:text-5xl lg:text-[3.65rem]">
+        <div className={`${shell} relative z-10 grid items-center gap-10 md:grid-cols-[minmax(0,52fr)_minmax(390px,48fr)] lg:gap-12`}>
+          <div className="max-w-[600px]">
+            <p className="mb-4 inline-flex rounded-full bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-coral shadow-sm ring-1 ring-white/70">
+              Biblioteca infantil encantada
+            </p>
+            <h1 className="font-display text-4xl font-black leading-[1.04] text-plum sm:text-5xl lg:text-[4rem]">
               Histórias que fazem sonhar, aprender e crescer.
             </h1>
             <p className="mt-5 max-w-[520px] text-base leading-8 text-slate-700 sm:text-lg">
               Embarque em aventuras incríveis com histórias cheias de imaginação, valores e encantamento.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-plum px-7 py-3.5 text-base font-black text-white shadow-[0_16px_34px_rgba(59,36,107,.22)] transition hover:-translate-y-1 hover:bg-coral"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-plum px-7 py-3.5 text-base font-black text-white shadow-[0_18px_36px_rgba(59,36,107,.22)] transition hover:-translate-y-1 hover:bg-coral"
                 href="/biblioteca"
               >
                 <BookOpen className="h-5 w-5" />
@@ -49,7 +52,7 @@ export default function Home() {
             </div>
           </div>
 
-          <HeroStorybookScene />
+          <HeroStorybookImage />
         </div>
       </section>
 
@@ -141,81 +144,19 @@ export default function Home() {
   );
 }
 
-function HeroStorybookScene() {
+function HeroStorybookImage() {
   return (
-    <div className="mx-auto w-full max-w-[560px] md:justify-self-end">
-      <div className="relative rounded-[2rem] border border-white/65 bg-white/32 p-4 shadow-[0_26px_70px_rgba(59,36,107,.16)] backdrop-blur-sm sm:p-5">
-        <span className="absolute left-8 top-7 h-3 w-3 rounded-full bg-sun" />
-        <span className="absolute right-10 top-9 h-4 w-4 rounded-full bg-sun/80" />
-        <span className="absolute right-24 top-10 h-10 w-16 rounded-full border-4 border-white/70" />
-        <svg className="h-auto w-full" viewBox="0 0 620 390" role="img" aria-label="Livro aberto com castelo, árvore, flores e nuvens">
-          <defs>
-            <linearGradient id="pageLeft" x1="0" x2="1" y1="0" y2="1">
-              <stop stopColor="#fffaf0" />
-              <stop offset="1" stopColor="#ffe3bf" />
-            </linearGradient>
-            <linearGradient id="pageRight" x1="1" x2="0" y1="0" y2="1">
-              <stop stopColor="#fffaf0" />
-              <stop offset="1" stopColor="#ffd9c7" />
-            </linearGradient>
-            <linearGradient id="castle" x1="0" x2="1" y1="0" y2="1">
-              <stop stopColor="#ff9ab8" />
-              <stop offset="1" stopColor="#f36f91" />
-            </linearGradient>
-          </defs>
-
-          <ellipse cx="314" cy="333" rx="244" ry="34" fill="#d9c28b" opacity=".22" />
-          <path d="M55 298c64-63 110-40 159-67 73-40 126-36 177 11 52 47 123 15 174 59v44H55Z" fill="#b8d889" />
-          <path d="M78 318c67-27 111-6 169-25 70-23 118-18 174 8 45 22 80 8 128 21v33H78Z" fill="#8fd8cf" opacity=".5" />
-
-          <g transform="translate(124 57) scale(.9)">
-            <rect x="38" y="92" width="130" height="146" rx="15" fill="url(#castle)" />
-            <rect x="77" y="148" width="45" height="90" rx="20" fill="#6a3a76" opacity=".85" />
-            <rect x="15" y="128" width="52" height="110" rx="9" fill="#ffb0c6" />
-            <rect x="139" y="128" width="52" height="110" rx="9" fill="#ffb0c6" />
-            <path d="M14 128 42 64l27 64Z" fill="#7c4cb0" />
-            <path d="m139 128 27-64 27 64Z" fill="#7c4cb0" />
-            <path d="m58 92 45-86 45 86Z" fill="#8d58bf" />
-            <rect x="93" y="32" width="15" height="50" fill="#8d58bf" />
-            <path d="M108 33c22-15 34 7 55-5-14 20-33 18-55 7Z" fill="#f36f91" />
-            <circle cx="103" cy="120" r="15" fill="#ffe7a3" />
-          </g>
-
-          <g transform="translate(427 82) scale(.85)">
-            <path d="M65 218V116" stroke="#7b5438" strokeLinecap="round" strokeWidth="23" />
-            <path d="M70 142c31-17 42-44 28-70 31 1 52 26 49 56 24 10 33 42 15 62 18 27-4 61-38 55-19 28-58 24-70-7-34 7-60-17-54-48-25-18-20-57 9-68-5-29 22-56 61-48-6 25-3 47 0 68Z" fill="#82be70" />
-            <path d="M100 104c17 9 29 24 35 45M47 171c27-4 50-16 69-35" stroke="#6aa95f" strokeLinecap="round" strokeWidth="7" opacity=".7" />
-          </g>
-
-          <g transform="translate(147 175)">
-            <path d="M153 31C91 8 38 18 1 61v104c47-44 96-50 152-24Z" fill="url(#pageLeft)" />
-            <path d="M153 31c63-26 125-25 187 6v106c-63-26-125-27-187-1Z" fill="url(#pageRight)" />
-            <path d="M153 31v111" stroke="#d18d7a" strokeWidth="5" opacity=".45" />
-            <path d="M1 61c47 9 95 20 152 81 63-52 125-50 187 1" fill="none" stroke="#6d3f98" strokeLinecap="round" strokeWidth="15" />
-            <path d="M22 82c36-15 68-13 103 4M32 108c33-10 59-9 88 4M209 76c36-9 70-4 105 13M202 104c40-7 72-1 101 11" stroke="#efb99d" strokeLinecap="round" strokeWidth="4" opacity=".82" />
-            <path d="M166 153c12 20 29 19 42 0l-5 59-20-16-19 16Z" fill="#f36f91" />
-            <ellipse cx="153" cy="165" rx="21" ry="14" fill="#5d347f" />
-          </g>
-
-          <g fill="#f36f91">
-            <circle cx="96" cy="272" r="8" />
-            <circle cx="83" cy="263" r="7" />
-            <circle cx="84" cy="280" r="7" />
-            <circle cx="107" cy="262" r="7" />
-            <circle cx="108" cy="280" r="7" />
-            <circle cx="96" cy="272" r="4" fill="#ffe7a3" />
-          </g>
-          <g fill="#ffe7a3">
-            <circle cx="544" cy="275" r="7" />
-            <circle cx="532" cy="267" r="6" />
-            <circle cx="533" cy="282" r="6" />
-            <circle cx="556" cy="267" r="6" />
-            <circle cx="557" cy="282" r="6" />
-            <circle cx="544" cy="275" r="4" fill="#f36f91" />
-          </g>
-          <path d="M90 303c-7-24 12-36 24-48M540 305c3-20 17-30 29-42" stroke="#5d9b7f" strokeLinecap="round" strokeWidth="5" />
-        </svg>
-      </div>
+    <div className="relative mx-auto w-full max-w-[590px] md:justify-self-end">
+      <div className="absolute inset-x-6 bottom-6 top-8 rounded-[45%] bg-[radial-gradient(circle_at_48%_45%,rgba(255,231,163,.42),rgba(249,196,210,.32)_42%,rgba(183,155,239,.24)_70%,transparent_100%)] blur-2xl" aria-hidden="true" />
+      <Image
+        alt="Livro aberto com castelo, árvore, flores e borboleta"
+        className="relative h-auto w-full drop-shadow-[0_30px_48px_rgba(59,36,107,.18)]"
+        height={264}
+        priority
+        sizes="(min-width: 768px) 45vw, 92vw"
+        src="/brand/hero-storybook.png"
+        width={504}
+      />
     </div>
   );
 }

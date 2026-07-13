@@ -1,7 +1,7 @@
-import { Clock, Sparkles } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import Link from 'next/link';
-import { BrandIllustration } from '@/components/brand-illustration';
 import { ShareButton } from '@/components/share-button';
+import { StoryCover } from '@/components/story-carousel';
 import type { Story } from '@/types';
 
 type StoryCardProps = {
@@ -10,29 +10,17 @@ type StoryCardProps = {
 
 export function StoryCard({ story }: StoryCardProps) {
   return (
-    <article className="book-card group flex h-full min-w-[270px] flex-col overflow-hidden rounded-[1.6rem] bg-white shadow-soft ring-1 ring-lilac/20 transition duration-300 hover:-translate-y-2 hover:shadow-[0_28px_70px_rgba(59,36,107,.22)]">
-      <div className="relative h-60 overflow-hidden p-5" style={{ background: story.color }}>
-        <div className="absolute inset-y-0 left-0 w-8 bg-plum/18" />
-        <div className="absolute inset-0 opacity-80">
-          <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 320 240">
-            <path d="M0 170C60 120 110 210 170 154C225 103 270 112 320 78V240H0Z" fill="#fff" opacity="0.38" />
-            <path d="M32 46C74 18 120 25 145 70C168 110 211 99 252 48C272 23 301 28 320 43V0H0v67C9 62 19 54 32 46Z" fill="#fff" opacity="0.3" />
-          </svg>
-        </div>
-        <div className="relative flex h-full flex-col justify-between rounded-[1.2rem] border border-white/70 bg-white/55 p-4 backdrop-blur-[1px]">
-          <div className="flex items-center justify-between gap-2">
-            <span className="rounded-full bg-white/88 px-3 py-1 text-xs font-black text-plum shadow-sm">{story.category}</span>
-            <Sparkles className="h-5 w-5 text-coral drop-shadow" />
-          </div>
-          <BrandIllustration className="mx-auto h-28 w-36" compact title={`Capa ilustrada de ${story.title}`} />
-          <h3 className="max-w-[13rem] font-display text-2xl font-black leading-tight text-plum">{story.title}</h3>
-        </div>
-        <div className="absolute inset-0 rounded-[1.6rem] opacity-0 ring-4 ring-white/50 transition group-hover:opacity-100" />
-      </div>
+    <article className="group flex h-full min-w-[270px] flex-col overflow-hidden rounded-[1.35rem] border border-lilac/15 bg-white shadow-[0_18px_48px_rgba(59,36,107,.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_64px_rgba(59,36,107,.16)]">
+      <StoryCover story={story} />
 
       <div className="flex flex-1 flex-col gap-4 p-5">
+        <div>
+          <span className="inline-flex rounded-full bg-cream px-3 py-1 text-xs font-black text-plum">{story.category}</span>
+          <h3 className="mt-3 line-clamp-2 min-h-[3.5rem] font-display text-2xl font-black leading-tight text-plum">{story.title}</h3>
+        </div>
+
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-cream px-3 py-1 text-xs font-black text-plum">{story.ageRange}</span>
+          <span className="rounded-full bg-rose/35 px-3 py-1 text-xs font-black text-plum">{story.ageRange}</span>
           <span className="inline-flex items-center gap-1 rounded-full bg-skyPastel/55 px-3 py-1 text-xs font-black text-plum">
             <Clock className="h-3.5 w-3.5" />
             {story.readingTime}
@@ -43,7 +31,7 @@ export function StoryCard({ story }: StoryCardProps) {
 
         <div className="mt-auto flex items-center gap-2">
           <Link
-            className="inline-flex flex-1 items-center justify-center rounded-full bg-plum px-4 py-3 text-sm font-black text-white transition hover:bg-coral"
+            className="inline-flex flex-1 items-center justify-center rounded-full bg-plum px-4 py-3 text-sm font-black text-white transition hover:bg-coral focus:outline-none focus:ring-4 focus:ring-lilac/35"
             href={`/historias/${story.slug}`}
           >
             Ler agora
