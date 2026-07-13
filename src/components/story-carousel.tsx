@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRef } from 'react';
 import type { Story } from '@/types';
@@ -26,33 +26,48 @@ export function StoryCarousel({ stories }: StoryCarouselProps) {
     <div className="relative">
       <button
         aria-label="Histórias anteriores"
-        className="absolute -left-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white text-plum shadow-[0_12px_35px_rgba(59,36,107,.18)] ring-1 ring-lilac/15 transition hover:-translate-y-[54%] hover:text-coral md:grid"
+        className="absolute -left-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white text-plum shadow-[0_12px_35px_rgba(59,36,107,.16)] ring-1 ring-white/80 transition hover:-translate-y-[54%] hover:text-coral md:grid"
         onClick={() => scrollByCard(-1)}
         type="button"
       >
         <ChevronLeft className="h-6 w-6" />
       </button>
       <div
-        className="flex snap-x gap-5 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x gap-5 overflow-x-auto scroll-smooth pb-4 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         ref={railRef}
       >
         {stories.map((story) => (
           <Link
-            className="group min-w-[250px] max-w-[250px] snap-start overflow-hidden rounded-[1.15rem] border border-lilac/15 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(59,36,107,.16)] sm:min-w-[290px] sm:max-w-[290px]"
+            className="group relative min-w-[255px] max-w-[255px] snap-start overflow-hidden rounded-[1.35rem] border border-white/90 bg-white shadow-[0_12px_34px_rgba(59,36,107,.08)] transition duration-300 hover:-translate-y-2 hover:shadow-[0_28px_65px_rgba(59,36,107,.16)] sm:min-w-[300px] sm:max-w-[300px]"
             href={`/historias/${story.slug}`}
             key={story.slug}
           >
+            <span className="absolute bottom-0 left-0 top-0 z-10 w-2 bg-gradient-to-b from-white/70 via-plum/10 to-plum/20 opacity-80" aria-hidden="true" />
             <StoryCover story={story} />
-            <div className="p-4">
-              <h3 className="line-clamp-2 min-h-[3.25rem] text-base font-black leading-6 text-plum">{story.title}</h3>
-              <span className="mt-3 inline-flex rounded-full bg-cream px-3 py-1 text-xs font-black text-plum">{story.category}</span>
+            <div className="p-5">
+              <span className="inline-flex rounded-full bg-cream px-3 py-1 text-xs font-black text-plum ring-1 ring-sun/35">{story.category}</span>
+              <h3 className="mt-3 line-clamp-2 min-h-[3.35rem] text-lg font-black leading-6 text-plum">{story.title}</h3>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs font-extrabold text-slate-500">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-skyPastel/28 px-2.5 py-1">
+                  <Users className="h-3.5 w-3.5 text-plum" />
+                  {story.ageRange}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-rose/35 px-2.5 py-1">
+                  <Clock className="h-3.5 w-3.5 text-coral" />
+                  {story.readingTime}
+                </span>
+              </div>
+              <span className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-plum px-4 py-3 text-sm font-black text-white shadow-[0_14px_28px_rgba(59,36,107,.18)] transition group-hover:bg-coral">
+                <BookOpen className="h-4 w-4" />
+                Ler história
+              </span>
             </div>
           </Link>
         ))}
       </div>
       <button
         aria-label="Próximas histórias"
-        className="absolute -right-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white text-plum shadow-[0_12px_35px_rgba(59,36,107,.18)] ring-1 ring-lilac/15 transition hover:-translate-y-[54%] hover:text-coral md:grid"
+        className="absolute -right-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white text-plum shadow-[0_12px_35px_rgba(59,36,107,.16)] ring-1 ring-white/80 transition hover:-translate-y-[54%] hover:text-coral md:grid"
         onClick={() => scrollByCard(1)}
         type="button"
       >
@@ -102,13 +117,14 @@ export function StoryCover({ story }: { story: Story }) {
 
 function CoverFrame({ children, from, to }: { children: React.ReactNode; from: string; to: string }) {
   return (
-    <div className="relative h-40 overflow-hidden" style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}>
+    <div className="relative h-52 overflow-hidden sm:h-56" style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}>
       <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 290 160">
         <path d="M0 118c47-24 74 4 119-23 49-29 87-16 115 5 19 14 35 18 56 7v53H0Z" fill="#fff8ea" opacity=".45" />
         <path d="M0 52c30-23 58-18 79-2 31 23 60 7 84-20 30-33 74-24 127 9V0H0Z" fill="#fff" opacity=".24" />
       </svg>
       <div className="absolute inset-0">{children}</div>
-      <div className="absolute inset-0 opacity-0 ring-4 ring-white/50 transition group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-t from-plum/12 via-transparent to-white/8 opacity-70" />
+      <div className="absolute inset-0 opacity-0 ring-4 ring-white/55 transition group-hover:opacity-100" />
     </div>
   );
 }

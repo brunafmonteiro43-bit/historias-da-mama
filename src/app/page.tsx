@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { StoryCarousel } from '@/components/story-carousel';
 import { categories, publishedStories } from '@/data/stories';
 
-const shell = 'mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8';
+const shell = 'mx-auto w-full max-w-[1240px] px-5 sm:px-6 lg:px-8';
 
 const benefitItems = [
   { icon: BookOpen, title: 'Histórias encantadoras', text: 'Narrativas selecionadas com muito carinho.', color: 'bg-lilac/20 text-plum' },
@@ -15,38 +15,34 @@ const benefitItems = [
 
 export default function Home() {
   return (
-    <main className="overflow-x-clip">
-      <section className="relative overflow-hidden bg-[linear-gradient(120deg,#fffaf0_0%,#fff5fa_46%,#f1ecff_100%)] pb-20 pt-14 md:pb-24 md:pt-16">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute left-[8%] top-16 h-40 w-40 rounded-full bg-sun/25 blur-3xl" />
-          <div className="absolute right-[13%] top-10 h-72 w-72 rounded-full bg-lilac/25 blur-3xl" />
-          <div className="absolute bottom-0 right-[4%] h-64 w-80 rounded-full bg-rose/30 blur-3xl" />
-        </div>
+    <main className="overflow-x-clip bg-[linear-gradient(180deg,#fffaf2_0%,#fff6fb_42%,#f8fbff_100%)]">
+      <section className="relative isolate overflow-hidden pb-20 pt-12 md:pb-24 md:pt-16">
+        <MagicalHeroBackdrop />
 
-        <div className={`${shell} relative z-10 grid items-center gap-10 md:grid-cols-[minmax(0,52fr)_minmax(390px,48fr)] lg:gap-12`}>
-          <div className="max-w-[600px]">
-            <p className="mb-4 inline-flex rounded-full bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-coral shadow-sm ring-1 ring-white/70">
+        <div className={`${shell} relative z-10 grid min-h-[580px] items-center gap-9 md:grid-cols-[minmax(0,50fr)_minmax(390px,50fr)] lg:gap-12`}>
+          <div className="max-w-[590px] pt-2">
+            <p className="mb-5 inline-flex rounded-full bg-white/72 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-coral shadow-[0_12px_32px_rgba(59,36,107,.08)] ring-1 ring-white/80 backdrop-blur">
               Biblioteca infantil encantada
             </p>
-            <h1 className="font-display text-4xl font-black leading-[1.04] text-plum sm:text-5xl lg:text-[4rem]">
+            <h1 className="font-display text-4xl font-black leading-[1.02] tracking-[-0.01em] text-plum sm:text-5xl lg:text-[4.35rem]">
               Histórias que fazem sonhar, aprender e crescer.
             </h1>
-            <p className="mt-5 max-w-[520px] text-base leading-8 text-slate-700 sm:text-lg">
+            <p className="mt-6 max-w-[530px] text-base leading-8 text-slate-700 sm:text-lg">
               Embarque em aventuras incríveis com histórias cheias de imaginação, valores e encantamento.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-plum px-7 py-3.5 text-base font-black text-white shadow-[0_18px_36px_rgba(59,36,107,.22)] transition hover:-translate-y-1 hover:bg-coral"
+                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-plum px-7 py-3.5 text-base font-black text-white shadow-[0_18px_42px_rgba(59,36,107,.24)] transition duration-300 hover:-translate-y-1 hover:bg-coral hover:shadow-[0_24px_52px_rgba(243,111,145,.28)]"
                 href="/biblioteca"
               >
-                <BookOpen className="h-5 w-5" />
+                <BookOpen className="h-5 w-5 transition group-hover:-rotate-6" />
                 Explorar histórias
               </Link>
               <Link
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-coral/30 bg-white/82 px-7 py-3.5 text-base font-black text-plum shadow-sm transition hover:-translate-y-1 hover:border-coral hover:text-coral"
+                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-coral/25 bg-white/82 px-7 py-3.5 text-base font-black text-plum shadow-[0_12px_30px_rgba(59,36,107,.08)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-coral hover:bg-white hover:text-coral"
                 href={`/historias/${publishedStories[0]?.slug ?? ''}`}
               >
-                <Sparkles className="h-5 w-5 text-coral" />
+                <Sparkles className="h-5 w-5 text-coral transition group-hover:scale-110" />
                 Surpreenda-me
               </Link>
             </div>
@@ -57,10 +53,10 @@ export default function Home() {
       </section>
 
       <section className={`${shell} relative z-20 -mt-10`}>
-        <div className="grid items-stretch gap-4 rounded-[1.35rem] border border-lilac/15 bg-white/95 p-4 shadow-[0_22px_70px_rgba(59,36,107,.12)] backdrop-blur md:grid-cols-2 md:p-5 lg:grid-cols-4">
+        <div className="grid items-stretch gap-3 rounded-[1.65rem] border border-white/80 bg-white/92 p-4 shadow-[0_24px_80px_rgba(59,36,107,.12)] backdrop-blur md:grid-cols-2 md:p-5 lg:grid-cols-4">
           {benefitItems.map(({ color, icon: Icon, text, title }) => (
-            <article className="flex h-full gap-4 rounded-2xl p-3" key={title}>
-              <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${color}`}>
+            <article className="flex h-full gap-4 rounded-[1.2rem] p-3 transition duration-300 hover:-translate-y-0.5 hover:bg-cream/45" key={title}>
+              <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full shadow-sm ${color}`}>
                 <Icon className="h-6 w-6" />
               </div>
               <div>
@@ -72,11 +68,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${shell} py-12`} id="historias">
-        <div className="rounded-[1.35rem] border border-lilac/15 bg-white/94 p-5 shadow-[0_22px_70px_rgba(59,36,107,.11)] sm:p-7">
+      <section className={`${shell} py-14`} id="historias">
+        <div className="rounded-[1.75rem] border border-white/80 bg-white/92 p-5 shadow-[0_24px_85px_rgba(59,36,107,.10)] backdrop-blur sm:p-7">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <h2 className="font-display text-3xl font-black text-plum md:text-4xl">Descubra novas aventuras</h2>
-            <Link className="inline-flex items-center gap-2 rounded-full px-2 py-2 text-sm font-black text-plum transition hover:text-coral" href="/biblioteca">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-coral">Biblioteca ilustrada</p>
+              <h2 className="mt-2 font-display text-3xl font-black text-plum md:text-4xl">Descubra novas aventuras</h2>
+            </div>
+            <Link className="inline-flex items-center gap-2 rounded-full bg-cream/75 px-4 py-2.5 text-sm font-black text-plum transition hover:-translate-y-0.5 hover:bg-rose/60 hover:text-coral" href="/biblioteca">
               Ver todas as histórias
               <span aria-hidden="true">›</span>
             </Link>
@@ -85,7 +84,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${shell} pb-12`} id="categorias">
+      <section className={`${shell} pb-14`} id="categorias">
         <div className="grid gap-5 md:grid-cols-[.9fr_1.1fr] md:items-center">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Escolha pelo clima da leitura</p>
@@ -94,7 +93,7 @@ export default function Home() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {categories.map((category) => (
               <Link
-                className="rounded-2xl bg-white/88 p-4 text-sm font-black text-plum shadow-sm ring-1 ring-lilac/15 transition hover:-translate-y-1 hover:text-coral"
+                className="rounded-[1.2rem] bg-white/86 p-4 text-sm font-black text-plum shadow-[0_12px_32px_rgba(59,36,107,.06)] ring-1 ring-white/80 transition duration-300 hover:-translate-y-1 hover:text-coral hover:shadow-[0_18px_42px_rgba(59,36,107,.12)]"
                 href="/biblioteca"
                 key={category.slug}
               >
@@ -106,8 +105,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${shell} pb-10`}>
-        <div className="flex flex-col gap-5 rounded-[1.35rem] border border-lilac/12 bg-white/90 p-6 shadow-[0_18px_55px_rgba(59,36,107,.09)] sm:flex-row sm:items-center sm:justify-between md:p-8">
+      <section className={`${shell} pb-12`}>
+        <div className="relative overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_22px_70px_rgba(59,36,107,.10)] backdrop-blur sm:flex sm:items-center sm:justify-between sm:gap-5 md:p-8">
+          <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-rose/45 blur-3xl" aria-hidden="true" />
           <div className="flex gap-5">
             <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-skyPastel/55 text-plum shadow-sm">
               <UploadCloud className="h-8 w-8" />
@@ -146,18 +146,46 @@ export default function Home() {
 
 function HeroStorybookImage() {
   return (
-    <div className="relative mx-auto w-full max-w-[590px] md:justify-self-end">
-      <div className="absolute inset-x-8 bottom-5 top-10 rounded-[45%] bg-[radial-gradient(circle_at_50%_52%,rgba(255,231,163,.34),rgba(249,196,210,.22)_42%,rgba(183,155,239,.18)_70%,transparent_100%)]" aria-hidden="true" />
+    <div className="hero-art-float relative mx-auto w-full max-w-[590px] md:justify-self-end">
+      <div className="absolute -inset-x-3 bottom-4 top-8 rounded-full bg-[radial-gradient(circle_at_53%_50%,rgba(255,231,163,.38),rgba(249,196,210,.24)_35%,rgba(183,155,239,.20)_64%,transparent_76%)]" aria-hidden="true" />
+      <div className="absolute -bottom-8 left-[14%] h-16 w-[72%] rounded-full bg-plum/10 blur-2xl" aria-hidden="true" />
       <Image
-        alt="Livro aberto com castelo, árvore, flores e borboleta"
-        className="relative h-auto w-full object-contain drop-shadow-[0_26px_38px_rgba(59,36,107,.16)]"
-        height={2100}
+        alt="Livro aberto com castelo, árvore, flores e borboleta em um cenário mágico"
+        className="relative h-auto w-full object-contain drop-shadow-[0_24px_38px_rgba(59,36,107,.13)]"
+        height={887}
         priority
         quality={100}
-        sizes="(min-width: 768px) 45vw, 92vw"
-        src="/brand/hero-storybook.svg"
-        width={3600}
+        sizes="(min-width: 1280px) 590px, (min-width: 768px) 45vw, 92vw"
+        src="/brand/hero-storybook-premium.png"
+        unoptimized
+        width={1774}
       />
+    </div>
+  );
+}
+
+function MagicalHeroBackdrop() {
+  return (
+    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div className="absolute inset-0 bg-[linear-gradient(118deg,#fff9ed_0%,#fff4fb_43%,#f0ecff_100%)]" />
+      <div className="absolute left-[4%] top-20 h-48 w-48 rounded-full bg-sun/24 blur-3xl" />
+      <div className="absolute right-[14%] top-5 h-72 w-72 rounded-full bg-lilac/24 blur-3xl" />
+      <div className="absolute bottom-2 right-[2%] h-64 w-96 rounded-full bg-rose/30 blur-3xl" />
+
+      <div className="cloud-drift absolute left-[6%] top-[18%] h-10 w-28 rounded-full bg-white/50 shadow-[34px_8px_0_-8px_rgba(255,255,255,.48),-24px_10px_0_-10px_rgba(255,255,255,.42)]" />
+      <div className="cloud-drift-slow absolute right-[18%] top-[16%] h-12 w-36 rounded-full bg-white/42 shadow-[42px_10px_0_-10px_rgba(255,255,255,.45),-28px_11px_0_-11px_rgba(255,255,255,.35)]" />
+      <span className="twinkle absolute left-[48%] top-[18%] h-2 w-2 rounded-full bg-white" />
+      <span className="twinkle-delay absolute left-[60%] top-[12%] h-2.5 w-2.5 rounded-full bg-sun" />
+      <span className="twinkle absolute right-[8%] top-[31%] h-2 w-2 rounded-full bg-white" />
+      <span className="magic-star absolute left-[39%] top-[37%] text-xl text-sun">✦</span>
+      <span className="magic-star twinkle-delay absolute right-[24%] top-[27%] text-lg text-white">✦</span>
+      <span className="butterfly-drift absolute right-[38%] top-[22%] h-8 w-9" aria-hidden="true">
+        <span className="absolute left-0 top-1 h-5 w-4 rounded-full rounded-br-sm bg-coral/55" />
+        <span className="absolute right-0 top-0 h-6 w-5 rounded-full rounded-bl-sm bg-rose/80" />
+        <span className="absolute left-[16px] top-2 h-7 w-1 rounded-full bg-plum/45" />
+      </span>
+      <span className="leaf-float absolute bottom-[20%] left-[44%] h-4 w-8 rounded-[100%_0] bg-aqua/45 rotate-12" />
+      <span className="leaf-float-delay absolute bottom-[15%] right-[12%] h-4 w-9 rounded-[100%_0] bg-[#a9d9bd]/55 -rotate-12" />
     </div>
   );
 }
