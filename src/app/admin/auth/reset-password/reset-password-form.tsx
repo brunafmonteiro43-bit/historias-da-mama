@@ -45,7 +45,7 @@ export function ResetPasswordForm() {
           autoComplete="email"
           className="rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
           name="email"
-          placeholder="admin@historiasdamama.com"
+          placeholder="Digite seu e-mail"
           required
           type="email"
         />

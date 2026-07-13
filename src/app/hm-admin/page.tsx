@@ -38,9 +38,9 @@ export default async function AdminLoginPage() {
 
         <section className="rounded-[2rem] border border-white/80 bg-white p-6 shadow-soft ring-1 ring-lilac/20 md:p-8" aria-label="Login do administrador">
           <KeyRound className="h-9 w-9 text-plum" />
-          <h2 className="mt-4 text-2xl font-black text-plum">Entrar com Supabase Auth</h2>
+          <h2 className="mt-4 text-2xl font-black text-plum">Entrar no painel</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Use o e-mail cadastrado em Authentication e autorizado na tabela admins.
+            Acesso exclusivo para administradores autorizados.
           </p>
 
           <AdminLoginForm disabled={!isSupabaseConfigured} />

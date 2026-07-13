@@ -33,7 +33,7 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
           </nav>
           <div className="mt-8 rounded-2xl bg-white/10 p-4 text-sm leading-6 text-white/80">
             <BarChart3 className="mb-3 h-5 w-5 text-sun" />
-            Sessão protegida por Supabase Auth e tabela admins.
+            Sessão protegida para administradores autorizados.
           </div>
         </aside>
 

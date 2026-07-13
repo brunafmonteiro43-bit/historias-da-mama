@@ -11,6 +11,8 @@ type AdminLoginFormProps = {
 
 export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,16 +24,14 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get('email') ?? '').trim();
-    const password = String(formData.get('password') ?? '');
+    const trimmedEmail = email.trim();
 
     setError('');
     setIsLoading(true);
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
 
       if (signInError) {
         setError('E-mail ou senha inválidos.');
@@ -60,13 +60,15 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
       <label className="grid gap-2 text-sm font-black text-ink">
         E-mail
         <input
-          autoComplete="email"
+          autoComplete="username"
           className="rounded-2xl border border-lilac/35 bg-cream/35 px-4 py-3 font-medium outline-none transition focus:border-plum focus:ring-4 focus:ring-lilac/25"
           disabled={disabled || isLoading}
           name="email"
-          placeholder="admin@historiasdamama.com"
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="Digite seu e-mail"
           required
           type="email"
+          value={email}
         />
       </label>
 
@@ -77,9 +79,11 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
           className="rounded-2xl border border-lilac/35 bg-cream/35 px-4 py-3 font-medium outline-none transition focus:border-plum focus:ring-4 focus:ring-lilac/25"
           disabled={disabled || isLoading}
           name="password"
-          placeholder="Sua senha"
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="Digite sua senha"
           required
           type="password"
+          value={password}
         />
       </label>
 
