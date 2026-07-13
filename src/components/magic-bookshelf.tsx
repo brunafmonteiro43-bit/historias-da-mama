@@ -78,7 +78,7 @@ export function MagicBookshelf({
   return (
     <motion.section
       aria-label="Estante mágica de histórias"
-      className="relative mx-auto w-full max-w-[690px] md:justify-self-end"
+      className="relative mx-auto w-full max-w-[700px] md:justify-self-end"
       initial={
         reducedMotion
           ? { opacity: 1 }
@@ -100,35 +100,31 @@ export function MagicBookshelf({
       <BookshelfLights reducedMotion={Boolean(reducedMotion)} />
 
       {/* ESTANTE DESKTOP */}
-      <div className="relative hidden min-h-[690px] px-3 pb-4 pt-2 md:block">
-        {/* Moldura de madeira */}
-        <div className="absolute inset-x-0 bottom-0 top-0 overflow-hidden rounded-t-[47%] rounded-b-[3rem] bg-[linear-gradient(105deg,#65351f_0%,#b66e3c_11%,#7a4024_23%,#d09255_38%,#7a4024_54%,#c47f48_72%,#61321e_88%,#9f6037_100%)] p-[17px] shadow-[0_35px_90px_rgba(59,36,107,.26),inset_0_0_0_3px_rgba(255,231,163,.28)]">
-          {/* Interior */}
+      <div className="relative hidden min-h-[710px] px-3 pb-4 pt-2 md:block">
+        <div className="absolute inset-x-0 bottom-0 top-0 overflow-hidden rounded-t-[47%] rounded-b-[3rem] bg-[linear-gradient(105deg,#5f321e_0%,#b76f3e_12%,#7a4024_25%,#d09155_40%,#7b4024_56%,#bf7944_73%,#5b2f1c_89%,#9b5b34_100%)] p-[21px] shadow-[0_35px_90px_rgba(59,36,107,.26),inset_0_0_0_3px_rgba(255,231,163,.28)]">
           <div className="relative h-full overflow-hidden rounded-t-[46%] rounded-b-[2.2rem] bg-[radial-gradient(circle_at_50%_12%,#633820_0%,#3b2118_42%,#23130f_100%)] shadow-[inset_0_0_70px_rgba(0,0,0,.65)]">
             <div className="absolute inset-x-[10%] top-[4%] h-36 rounded-full bg-[#ffe7a3]/15 blur-3xl" />
 
             <div className="pointer-events-none absolute inset-0 opacity-[.16] [background-image:repeating-linear-gradient(92deg,transparent_0,transparent_27px,rgba(255,255,255,.14)_28px,transparent_30px)]" />
 
-            {/* Fio de luz */}
             <div
               aria-hidden="true"
               className="absolute left-[12%] right-[12%] top-[10%] z-30 h-[2px] rotate-[-1deg] bg-[#a76b38]/80"
             />
 
-            {/* Conteúdo */}
-            <div className="relative z-20 flex h-full flex-col justify-end px-7 pb-7 pt-28">
+            <div className="relative z-20 flex h-full flex-col justify-end px-7 pb-7 pt-36">
               {rows.map((rowStories, rowIndex) => (
                 <div
                   className="relative flex flex-1 flex-col justify-end"
                   key={rowIndex}
                 >
                   <div
-                    className={`flex min-h-[150px] items-end justify-center px-2 ${
+                    className={`flex min-h-[154px] items-end justify-center px-2 ${
                       rowStories.length <= 2
-                        ? 'gap-12'
+                        ? 'gap-16'
                         : rowStories.length === 3
-                          ? 'gap-7'
-                          : 'gap-4 lg:gap-5'
+                          ? 'gap-8'
+                          : 'gap-5 lg:gap-6'
                     }`}
                   >
                     {rowStories.map((story, index) => (
@@ -199,18 +195,18 @@ function MagicBook({
   ];
 
   const heights = [
-    'h-[154px]',
+    'h-[156px]',
+    'h-[164px]',
+    'h-[159px]',
+    'h-[168px]',
     'h-[162px]',
-    'h-[157px]',
-    'h-[166px]',
+    'h-[167px]',
+    'h-[158px]',
+    'h-[164px]',
+    'h-[168px]',
     'h-[160px]',
     'h-[165px]',
-    'h-[156px]',
     'h-[162px]',
-    'h-[166px]',
-    'h-[158px]',
-    'h-[163px]',
-    'h-[160px]',
   ];
 
   return (
@@ -267,7 +263,7 @@ function MagicBook({
     >
       <Link
         aria-label={`Abrir história ${story.title}, ${story.ageRange}`}
-        className={`relative block w-[94px] ${heights[index % heights.length]} ${rotations[index % rotations.length]} overflow-hidden rounded-md bg-white shadow-[0_14px_24px_rgba(0,0,0,.48)] outline-none ring-1 ring-white/40 transition focus-visible:ring-4 focus-visible:ring-coral/60 lg:w-[102px]`}
+        className={`relative block w-[98px] ${heights[index % heights.length]} ${rotations[index % rotations.length]} overflow-hidden rounded-md bg-white shadow-[0_14px_24px_rgba(0,0,0,.48)] outline-none ring-1 ring-white/40 transition focus-visible:ring-4 focus-visible:ring-coral/60 lg:w-[108px]`}
         href={`/historias/${story.slug}`}
         onKeyDown={openWithSpace}
       >
@@ -282,7 +278,7 @@ function MagicBook({
             className="h-full w-full object-cover"
             fill
             loading="lazy"
-            sizes="(min-width: 1024px) 102px, 94px"
+            sizes="(min-width: 1024px) 108px, 98px"
             src={story.coverUrl}
           />
         ) : (
@@ -386,7 +382,7 @@ function BookshelfFlowers({
             ? undefined
             : { rotate: [-1, 1.5, -1] }
         }
-        className="absolute left-[4%] top-[-1%] h-20 w-[92%]"
+        className="absolute left-[1%] top-[-3%] h-24 w-[98%]"
         transition={{
           duration: 7,
           repeat: Infinity,
@@ -449,7 +445,7 @@ function BookshelfFlowers({
                 rotate: [-5, 8, -5],
               }
         }
-        className="absolute right-[4%] top-[12%] h-12 w-13"
+        className="absolute right-[4%] top-[12%] h-12 w-12"
         transition={{
           duration: 6.5,
           repeat: Infinity,
