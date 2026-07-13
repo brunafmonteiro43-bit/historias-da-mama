@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -13,10 +13,10 @@ type AdminStoryFormProps = {
 };
 
 const steps = [
-  'InformaÃ§Ãµes bÃ¡sicas',
+  'Informações básicas',
   'Capa e arquivos',
-  'PÃ¡ginas da histÃ³ria',
-  'PublicaÃ§Ã£o',
+  'Páginas da história',
+  'Publicação',
 ];
 
 const imageTypes = ['image/png', 'image/jpeg', 'image/webp'];
@@ -38,7 +38,7 @@ function fileError(file: File, kind: 'image' | 'pdf') {
   }
 
   if (file.size > limit) {
-    return `${file.name}: tamanho mÃ¡ximo ${formatSize(limit)}.`;
+    return `${file.name}: tamanho máximo ${formatSize(limit)}.`;
   }
 
   return '';
@@ -60,10 +60,10 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
 
   const stepSummary = useMemo(
     () => [
-      'TÃ­tulo, descriÃ§Ã£o, autoria, categoria e faixa etÃ¡ria.',
-      'Capa vertical, PDF da histÃ³ria e imagens opcionais.',
-      'Textos das pÃ¡ginas e ordem de leitura.',
-      'Rascunho ou publicaÃ§Ã£o para visitantes.',
+      'Título, descrição, autoria, categoria e faixa etária.',
+      'Capa vertical, PDF da história e imagens opcionais.',
+      'Textos das páginas e ordem de leitura.',
+      'Rascunho ou publicação para visitantes.',
     ],
     [],
   );
@@ -144,11 +144,11 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
 
       <div>
         <p className="text-sm font-black uppercase tracking-[0.2em] text-violet-600">
-          {story ? 'Editar histÃ³ria' : 'Nova histÃ³ria'}
+          {story ? 'Editar história' : 'Nova história'}
         </p>
-        <h1 className="mt-2 text-4xl font-black text-ink">{story ? story.title : 'Cadastrar histÃ³ria'}</h1>
+        <h1 className="mt-2 text-4xl font-black text-ink">{story ? story.title : 'Cadastrar história'}</h1>
         <p className="mt-2 max-w-2xl leading-7 text-slate-600">
-          Preencha as etapas, revise a publicaÃ§Ã£o e salve. Visitantes sÃ³ verÃ£o histÃ³rias marcadas como publicadas.
+          Preencha as etapas, revise a publicação e salve. Visitantes só verão histórias marcadas como publicadas.
         </p>
       </div>
 
@@ -179,41 +179,41 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
 
       <section className={currentStep === 0 ? 'grid gap-5' : 'hidden'}>
         <label className="grid gap-2 text-sm font-black text-ink">
-          TÃ­tulo da histÃ³ria
+          Título da história
           <input
             className="rounded-2xl border border-slate-200 px-4 py-3"
             defaultValue={story?.title}
             name="title"
-            placeholder="Ex.: O ChapÃ©u do Leo"
+            placeholder="Ex.: O Chapéu do Leo"
             required
           />
         </label>
 
         <label className="grid gap-2 text-sm font-black text-ink">
-          DescriÃ§Ã£o curta
+          Descrição curta
           <textarea
             className="min-h-28 rounded-2xl border border-slate-200 px-4 py-3"
             defaultValue={story?.description}
             name="description"
-            placeholder="Resumo curto para famÃ­lias, professores e crianÃ§as"
+            placeholder="Resumo curto para famílias, professores e crianças"
             required
           />
         </label>
 
         <label className="grid gap-2 text-sm font-black text-ink">
-          DescriÃ§Ã£o completa
+          Descrição completa
           <textarea
             className="min-h-36 rounded-2xl border border-slate-200 px-4 py-3"
             defaultValue={story?.fullDescription ?? story?.description}
             name="fullDescription"
-            placeholder="Texto mais completo para a pÃ¡gina da histÃ³ria"
+            placeholder="Texto mais completo para a página da história"
           />
         </label>
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm font-black text-ink">
             Autor
-            <input className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.author ?? 'HistÃ³rias da MamÃ¡'} name="author" required />
+            <input className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.author ?? 'Histórias da Mamá'} name="author" required />
           </label>
           <label className="grid gap-2 text-sm font-black text-ink">
             Categoria
@@ -247,14 +247,14 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
           </label>
           <label className="grid gap-2 text-sm font-black text-ink">
             Tema principal
-            <input className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.theme ?? 'imaginaÃ§Ã£o'} name="theme" required />
+            <input className="rounded-2xl border border-slate-200 px-4 py-3" defaultValue={story?.theme ?? 'imaginação'} name="theme" required />
           </label>
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
           <label className="flex items-center gap-3 rounded-2xl bg-aqua/45 p-4 text-sm font-black text-ink">
             <input className="h-5 w-5" defaultChecked={story?.hasColoringVersion} name="hasColoringVersion" type="checkbox" />
-            VersÃ£o para colorir
+            Versão para colorir
           </label>
           <label className="flex items-center gap-3 rounded-2xl bg-sun/45 p-4 text-sm font-black text-ink">
             <input className="h-5 w-5" defaultChecked={story?.isFeatured} name="isFeatured" type="checkbox" />
@@ -262,7 +262,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
           </label>
           <label className="flex items-center gap-3 rounded-2xl bg-rose/45 p-4 text-sm font-black text-ink">
             <input className="h-5 w-5" defaultChecked={story?.isStoryOfWeek} name="isStoryOfWeek" type="checkbox" />
-            HistÃ³ria da semana
+            História da semana
           </label>
         </div>
       </section>
@@ -284,12 +284,12 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
             }}
           >
             {coverPreview ? (
-              <img alt="PrÃ©via da capa" className="h-60 rounded-2xl object-cover shadow-soft" src={coverPreview} />
+              <img alt="Prévia da capa" className="h-60 rounded-2xl object-cover shadow-soft" src={coverPreview} />
             ) : (
               <span className="grid place-items-center gap-3 text-ink">
                 <ImagePlus className="h-10 w-10 text-violet-700" />
-                <strong>Capa da histÃ³ria</strong>
-                <small>Arraste ou selecione PNG, JPG ou WEBP atÃ© 8 MB.</small>
+                <strong>Capa da história</strong>
+                <small>Arraste ou selecione PNG, JPG ou WEBP até 8 MB.</small>
               </span>
             )}
             <input
@@ -305,15 +305,15 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
           <div className="grid gap-4">
             <label className="rounded-[2rem] border-2 border-dashed border-slate-200 bg-white p-6">
               <UploadCloud className="h-9 w-9 text-violet-700" />
-              <strong className="mt-3 block text-ink">PDF da histÃ³ria</strong>
-              <span className="mt-1 block text-sm text-slate-600">Use PDF atÃ© 50 MB.</span>
+              <strong className="mt-3 block text-ink">PDF da história</strong>
+              <span className="mt-1 block text-sm text-slate-600">Use PDF até 50 MB.</span>
               <input accept="application/pdf" className="mt-4 block text-sm" name="storyPdf" onChange={(event) => handlePdf(event.target.files)} type="file" />
             </label>
 
             <label className="rounded-[2rem] border-2 border-dashed border-slate-200 bg-white p-6">
               <Layers3 className="h-9 w-9 text-violet-700" />
-              <strong className="mt-3 block text-ink">Imagens das pÃ¡ginas</strong>
-              <span className="mt-1 block text-sm text-slate-600">PNG, JPG ou WEBP atÃ© 8 MB cada.</span>
+              <strong className="mt-3 block text-ink">Imagens das páginas</strong>
+              <span className="mt-1 block text-sm text-slate-600">PNG, JPG ou WEBP até 8 MB cada.</span>
               <input
                 accept="image/png,image/jpeg,image/webp"
                 className="mt-4 block text-sm"
@@ -330,7 +330,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
         {pagePreviews.length > 0 ? (
           <div className="grid gap-3 rounded-3xl bg-slate-50 p-4 sm:grid-cols-3">
             {pagePreviews.map((preview, index) => (
-              <img alt={`PrÃ©via da pÃ¡gina ${index + 1}`} className="aspect-[3/4] rounded-2xl object-cover shadow-sm" key={preview} src={preview} />
+              <img alt={`Prévia da página ${index + 1}`} className="aspect-[3/4] rounded-2xl object-cover shadow-sm" key={preview} src={preview} />
             ))}
           </div>
         ) : null}
@@ -339,11 +339,11 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
       <section className={currentStep === 2 ? 'grid gap-4' : 'hidden'}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-black text-ink">PÃ¡ginas da histÃ³ria</h2>
+            <h2 className="text-2xl font-black text-ink">Páginas da história</h2>
             <p className="text-sm text-slate-600">Arraste os blocos para reorganizar a leitura.</p>
           </div>
           <button className="rounded-full bg-slate-100 px-4 py-2 font-black text-ink" onClick={addPage} type="button">
-            Adicionar pÃ¡gina
+            Adicionar página
           </button>
         </div>
 
@@ -360,13 +360,13 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
             <div className="mb-3 flex items-center justify-between gap-3">
               <strong className="inline-flex items-center gap-2 text-ink">
                 <GripVertical className="h-5 w-5 text-slate-400" />
-                PÃ¡gina {index + 1}
+                Página {index + 1}
               </strong>
               <div className="flex gap-2">
-                <button className="rounded-full bg-slate-100 p-2" onClick={() => movePage(index, index - 1)} title="Subir pÃ¡gina" type="button">
+                <button className="rounded-full bg-slate-100 p-2" onClick={() => movePage(index, index - 1)} title="Subir página" type="button">
                   <ArrowUp className="h-4 w-4" />
                 </button>
-                <button className="rounded-full bg-slate-100 p-2" onClick={() => movePage(index, index + 1)} title="Descer pÃ¡gina" type="button">
+                <button className="rounded-full bg-slate-100 p-2" onClick={() => movePage(index, index + 1)} title="Descer página" type="button">
                   <ArrowDown className="h-4 w-4" />
                 </button>
                 <button className="rounded-full bg-rose/70 px-3 py-2 text-sm font-black" onClick={() => removePage(index)} type="button">
@@ -378,7 +378,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
               className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3"
               name="pageText"
               onChange={(event) => updatePage(index, event.target.value)}
-              placeholder="Texto da pÃ¡gina"
+              placeholder="Texto da página"
               value={page}
             />
           </article>
@@ -392,7 +392,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
               <FileText className="h-5 w-5" />
               Salvar rascunho
             </span>
-            <p className="mt-2 text-sm leading-6 text-slate-600">A histÃ³ria fica guardada no painel e nÃ£o aparece para visitantes.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">A história fica guardada no painel e não aparece para visitantes.</p>
             <input className="mt-4 h-5 w-5" defaultChecked={story?.status !== 'published'} name="status" type="radio" value="draft" />
           </label>
           <label className="rounded-3xl border border-slate-200 p-5">
@@ -400,7 +400,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
               <CheckCircle2 className="h-5 w-5" />
               Publicar
             </span>
-            <p className="mt-2 text-sm leading-6 text-slate-600">A histÃ³ria aparece na biblioteca pÃºblica apÃ³s salvar.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">A história aparece na biblioteca pública após salvar.</p>
             <input className="mt-4 h-5 w-5" defaultChecked={story?.status === 'published'} name="status" type="radio" value="published" />
           </label>
         </div>
@@ -413,7 +413,7 @@ export function AdminStoryForm({ categories, story }: AdminStoryFormProps) {
         <div className="flex flex-wrap gap-3">
           {canGoNext ? (
             <button className="rounded-full bg-ink px-6 py-3 font-black text-white" onClick={() => setCurrentStep((step) => step + 1)} type="button">
-              PrÃ³xima etapa
+              Próxima etapa
             </button>
           ) : (
             <button className="rounded-full bg-ink px-8 py-4 text-lg font-black text-white shadow-soft" type="submit">

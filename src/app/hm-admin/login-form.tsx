@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { Loader2, LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -34,7 +34,7 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
       if (signInError) {
-        setError('E-mail ou senha invÃ¡lidos.');
+        setError('E-mail ou senha inválidos.');
         return;
       }
 
@@ -42,14 +42,14 @@ export function AdminLoginForm({ disabled = false }: AdminLoginFormProps) {
 
       if (adminError || isAdmin !== true) {
         await supabase.auth.signOut();
-        setError('Este usuÃ¡rio existe, mas nÃ£o estÃ¡ autorizado como administrador.');
+        setError('Este usuário existe, mas não está autorizado como administrador.');
         return;
       }
 
       router.replace('/hm-admin/dashboard');
       router.refresh();
     } catch {
-      setError('NÃ£o foi possÃ­vel conectar ao Supabase. Confira as variÃ¡veis de ambiente.');
+      setError('Não foi possível conectar ao Supabase. Confira as variáveis de ambiente.');
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-﻿import { BookOpen, FileText, FolderKanban, PlusCircle, Sparkles } from 'lucide-react';
+import { BookOpen, FileText, FolderKanban, PlusCircle, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/hm-admin-auth';
 import { getAdminCategories, getAdminStories } from '@/lib/hm-admin-queries';
@@ -21,12 +21,12 @@ export default async function AdminDashboardPage() {
   return (
     <div className="grid gap-8">
       <section className="rounded-[2rem] bg-white p-6 shadow-soft ring-1 ring-lilac/20 md:p-8">
-        <p className="text-sm font-black uppercase tracking-[0.2em] text-coral">VisÃ£o geral</p>
+        <p className="text-sm font-black uppercase tracking-[0.2em] text-coral">Visão geral</p>
         <div className="mt-4 flex flex-wrap items-end justify-between gap-5">
           <div>
             <h1 className="font-display text-4xl font-black text-plum">Dashboard</h1>
             <p className="mt-2 max-w-2xl leading-7 text-slate-600">
-              Acompanhe o conteÃºdo publicado e acesse rapidamente o cadastro de novas Histórias.
+              Acompanhe o conteúdo publicado e acesse rapidamente o cadastro de novas Histórias.
             </p>
           </div>
           <Link
@@ -62,7 +62,7 @@ export default async function AdminDashboardPage() {
               <div>
                 <strong className="text-plum">{story.title}</strong>
                 <p className="mt-1 text-sm text-slate-500">
-                  {story.category} Â· {story.ageRange} Â· {story.readingTime}
+                  {story.category} · {story.ageRange} · {story.readingTime}
                 </p>
               </div>
               <span className="rounded-full bg-cream px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-plum">

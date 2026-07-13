@@ -1,4 +1,4 @@
-﻿import { KeyRound } from 'lucide-react';
+import { KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { ResetPasswordForm } from './reset-password-form';
 
@@ -11,7 +11,7 @@ export default function ResetPasswordPage() {
         <KeyRound className="h-9 w-9 text-violet-700" />
         <h1 className="mt-4 text-4xl font-black text-ink">Recuperar senha</h1>
         <p className="mt-3 leading-7 text-slate-700">
-          Informe o e-mail da conta administradora. O Supabase enviarÃ¡ o link de recuperaÃ§Ã£o configurado no projeto.
+          Informe o e-mail da conta administradora. O Supabase enviará o link de recuperação configurado no projeto.
         </p>
         <ResetPasswordForm />
         <Link className="mt-6 inline-flex rounded-full bg-slate-100 px-5 py-3 font-black text-ink" href="/hm-admin">

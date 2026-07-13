@@ -1,4 +1,4 @@
-﻿import { BarChart3, BookOpen, FolderKanban, LayoutDashboard, PlusCircle } from 'lucide-react';
+import { BarChart3, BookOpen, FolderKanban, LayoutDashboard, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { AdminLogoutButton } from '@/components/hm-admin-logout-button';
 import { Logo } from '@/components/logo';
@@ -33,7 +33,7 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
           </nav>
           <div className="mt-8 rounded-2xl bg-white/10 p-4 text-sm leading-6 text-white/80">
             <BarChart3 className="mb-3 h-5 w-5 text-sun" />
-            SessÃ£o protegida por Supabase Auth e tabela admins.
+            Sessão protegida por Supabase Auth e tabela admins.
           </div>
         </aside>
 

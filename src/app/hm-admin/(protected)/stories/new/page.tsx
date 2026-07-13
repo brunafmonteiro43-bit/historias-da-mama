@@ -1,4 +1,4 @@
-﻿import { AdminStoryForm } from '@/components/hm-admin-story-form';
+import { AdminStoryForm } from '@/components/hm-admin-story-form';
 import { requireAdmin } from '@/lib/hm-admin-auth';
 import { getAdminCategories } from '@/lib/hm-admin-queries';
 

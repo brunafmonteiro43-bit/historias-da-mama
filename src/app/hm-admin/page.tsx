@@ -1,4 +1,4 @@
-﻿import { KeyRound, ShieldCheck } from 'lucide-react';
+import { KeyRound, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { redirectAdminToDashboard } from '@/lib/hm-admin-auth';
@@ -22,16 +22,16 @@ export default async function AdminLoginPage() {
             Acesso privado
           </p>
           <h1 className="mt-6 font-display text-4xl font-black leading-tight text-plum md:text-6xl">
-            Administração das Histórias da MamÃ¡
+            Administração das Histórias da Mamá
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-700">
-            Esta entrada Ã© exclusiva para administradores cadastrarem, editarem, publicarem e removerem Histórias.
-            Leitores nÃ£o precisam de conta para aproveitar a biblioteca pÃºblica.
+            Esta entrada é exclusiva para administradores cadastrarem, editarem, publicarem e removerem Histórias.
+            Leitores não precisam de conta para aproveitar a biblioteca pública.
           </p>
 
           {!isSupabaseConfigured ? (
             <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-bold text-amber-900">
-              Configure as variÃ¡veis NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY para ativar o login real.
+              Configure as variáveis NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY para ativar o login real.
             </div>
           ) : null}
         </div>

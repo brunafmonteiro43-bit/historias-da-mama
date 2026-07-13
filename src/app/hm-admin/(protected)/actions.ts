@@ -1,4 +1,4 @@
-﻿'use server';
+'use server';
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -85,7 +85,7 @@ async function getOrCreateAuthor(supabase: Awaited<ReturnType<typeof requireAdmi
   const { data, error } = await supabase.from('authors').insert({ name }).select('id').single();
 
   if (error || !data) {
-    throw new Error('NÃ£o foi possÃ­vel salvar o autor.');
+    throw new Error('Não foi possível salvar o autor.');
   }
 
   return data.id;
@@ -105,7 +105,7 @@ async function getOrCreateCategory(supabase: Awaited<ReturnType<typeof requireAd
     .single();
 
   if (error || !data) {
-    throw new Error('NÃ£o foi possÃ­vel salvar a categoria.');
+    throw new Error('Não foi possível salvar a categoria.');
   }
 
   return data.id;
@@ -155,7 +155,7 @@ export async function saveStoryAction(formData: FormData) {
     : await supabase.from('stories').insert(payload).select('id').single();
 
   if (response.error || !response.data) {
-    throw new Error('NÃ£o foi possÃ­vel salvar a história.');
+    throw new Error('Não foi possível salvar a história.');
   }
 
   const storyId = response.data.id;
@@ -188,7 +188,7 @@ export async function saveStoryAction(formData: FormData) {
     const uploadedPages: Array<string | null> = [];
 
     for (const file of pageFiles) {
-      validateFile(file, imageTypes, imageLimit, 'A pÃ¡gina');
+      validateFile(file, imageTypes, imageLimit, 'A página');
       uploadedPages.push(await uploadFile(supabase, file, storyId, 'story-pages', 'pages'));
     }
 
@@ -205,7 +205,7 @@ export async function saveStoryAction(formData: FormData) {
       const { error } = await supabase.from('story_pages').insert(pages);
 
       if (error) {
-        throw new Error('NÃ£o foi possÃ­vel salvar as pÃ¡ginas da história.');
+        throw new Error('Não foi possível salvar as páginas da história.');
       }
     }
   }

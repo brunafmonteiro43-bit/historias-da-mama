@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { Loader2, Mail } from 'lucide-react';
 import { FormEvent, useState } from 'react';
@@ -25,11 +25,11 @@ export function ResetPasswordForm() {
       });
 
       if (resetError) {
-        setError('NÃ£o foi possÃ­vel enviar o e-mail de recuperaÃ§Ã£o.');
+        setError('Não foi possível enviar o e-mail de recuperação.');
         return;
       }
 
-      setMessage('E-mail de recuperaÃ§Ã£o enviado. Confira sua caixa de entrada.');
+      setMessage('E-mail de recuperação enviado. Confira sua caixa de entrada.');
     } catch {
       setError('Configure o Supabase antes de recuperar a senha.');
     } finally {
@@ -60,7 +60,7 @@ export function ResetPasswordForm() {
         type="submit"
       >
         {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
-        Enviar recuperaÃ§Ã£o
+        Enviar recuperação
       </button>
     </form>
   );
