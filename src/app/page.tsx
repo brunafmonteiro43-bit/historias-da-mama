@@ -15,8 +15,8 @@ const benefitItems = [
 
 export default function Home() {
   return (
-    <main className="overflow-x-clip bg-[linear-gradient(180deg,#fffaf2_0%,#fff6fb_42%,#f8fbff_100%)]">
-      <section className="relative isolate overflow-hidden pb-20 pt-12 md:pb-24 md:pt-16">
+    <main className="overflow-x-clip bg-[#fffaf2]">
+      <section className="relative isolate overflow-hidden bg-[linear-gradient(118deg,#fff9ed_0%,#fff4fb_43%,#f0ecff_100%)] pb-20 pt-12 [contain:paint] md:pb-24 md:pt-16">
         <MagicalHeroBackdrop />
 
         <div className={`${shell} relative z-10 grid min-h-[580px] items-center gap-9 md:grid-cols-[minmax(0,50fr)_minmax(390px,50fr)] lg:gap-12`}>
@@ -52,23 +52,24 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${shell} relative z-20 -mt-10`}>
-        <div className="grid items-stretch gap-3 rounded-[1.65rem] border border-white/80 bg-white/92 p-4 shadow-[0_24px_80px_rgba(59,36,107,.12)] backdrop-blur md:grid-cols-2 md:p-5 lg:grid-cols-4">
-          {benefitItems.map(({ color, icon: Icon, text, title }) => (
-            <article className="flex h-full gap-4 rounded-[1.2rem] p-3 transition duration-300 hover:-translate-y-0.5 hover:bg-cream/45" key={title}>
-              <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full shadow-sm ${color}`}>
-                <Icon className="h-6 w-6" />
-              </div>
-              <div>
-                <h2 className="font-black text-plum">{title}</h2>
-                <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      <div className="relative z-10 bg-[linear-gradient(180deg,#fffaf2_0%,#fff6fb_45%,#f8fbff_100%)]">
+        <section className={`${shell} relative pt-10`}>
+          <div className="grid items-stretch gap-3 rounded-[1.65rem] border border-white/80 bg-white p-4 shadow-[0_24px_80px_rgba(59,36,107,.12)] md:grid-cols-2 md:p-5 lg:grid-cols-4">
+            {benefitItems.map(({ color, icon: Icon, text, title }) => (
+              <article className="flex h-full gap-4 rounded-[1.2rem] p-3 transition duration-300 hover:-translate-y-0.5 hover:bg-cream/45" key={title}>
+                <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full shadow-sm ${color}`}>
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="font-black text-plum">{title}</h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
-      <section className={`${shell} py-14`} id="historias">
+        <section className={`${shell} py-14`} id="historias">
         <div className="rounded-[1.75rem] border border-white/80 bg-white/92 p-5 shadow-[0_24px_85px_rgba(59,36,107,.10)] backdrop-blur sm:p-7">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -84,7 +85,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${shell} pb-14`} id="categorias">
+        <section className={`${shell} pb-14`} id="categorias">
         <div className="grid gap-5 md:grid-cols-[.9fr_1.1fr] md:items-center">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Escolha pelo clima da leitura</p>
@@ -105,7 +106,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${shell} pb-12`}>
+        <section className={`${shell} pb-12`}>
         <div className="relative overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_22px_70px_rgba(59,36,107,.10)] backdrop-blur sm:flex sm:items-center sm:justify-between sm:gap-5 md:p-8">
           <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-rose/45 blur-3xl" aria-hidden="true" />
           <div className="flex gap-5">
@@ -129,7 +130,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${shell} pb-10`} id="sobre">
+        <section className={`${shell} pb-10`} id="sobre">
         <div className="rounded-[1.35rem] bg-white/75 p-6 text-center shadow-sm ring-1 ring-lilac/10 md:p-8">
           <Library className="mx-auto h-8 w-8 text-coral" />
           <h2 className="mt-3 font-display text-3xl font-black text-plum">Feita para pequenas grandes imaginações</h2>
@@ -139,7 +140,8 @@ export default function Home() {
         </div>
       </section>
 
-      <DecorativeStorylandFooter />
+        <DecorativeStorylandFooter />
+      </div>
     </main>
   );
 }
@@ -166,8 +168,7 @@ function HeroStorybookImage() {
 
 function MagicalHeroBackdrop() {
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-[linear-gradient(118deg,#fff9ed_0%,#fff4fb_43%,#f0ecff_100%)]" />
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
       <div className="absolute left-[4%] top-20 h-48 w-48 rounded-full bg-sun/24 blur-3xl" />
       <div className="absolute right-[14%] top-5 h-72 w-72 rounded-full bg-lilac/24 blur-3xl" />
       <div className="absolute bottom-2 right-[2%] h-64 w-96 rounded-full bg-rose/30 blur-3xl" />
