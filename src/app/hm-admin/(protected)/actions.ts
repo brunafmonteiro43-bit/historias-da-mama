@@ -24,7 +24,7 @@ const storySchema = z.object({
 const imageTypes = ['image/png', 'image/jpeg', 'image/webp'];
 const pdfTypes = ['application/pdf'];
 const imageLimit = 8 * 1024 * 1024;
-const pdfLimit = 50 * 1024 * 1024;
+const pdfLimit = 80 * 1024 * 1024;
 
 function getString(formData: FormData, key: string) {
   return String(formData.get(key) ?? '').trim();
@@ -162,12 +162,19 @@ export async function saveStoryAction(formData: FormData) {
   const cover = getFile(formData, 'cover');
   const pdf = getFile(formData, 'storyPdf');
   const pageFiles = getFiles(formData, 'pageImages');
+  const existingCoverUrl = getString(formData, 'existingCoverUrl');
+  const pageImageSources = formData
+    .getAll('pageImageSource')
+    .map((value) => String(value ?? '').trim())
+    .filter(Boolean);
 
   const fileUpdates: Record<string, string> = {};
 
   if (cover) {
     validateFile(cover, imageTypes, imageLimit, 'A capa');
     fileUpdates.cover_url = await uploadFile(supabase, cover, storyId, 'story-covers', 'cover');
+  } else if (existingCoverUrl) {
+    fileUpdates.cover_url = existingCoverUrl;
   }
 
   if (pdf) {
@@ -184,7 +191,7 @@ export async function saveStoryAction(formData: FormData) {
     .map((value) => String(value ?? '').trim())
     .filter(Boolean);
 
-  if (pageTexts.length > 0 || pageFiles.length > 0) {
+  if (pageTexts.length > 0 || pageFiles.length > 0 || pageImageSources.length > 0) {
     const uploadedPages: Array<string | null> = [];
 
     for (const file of pageFiles) {
@@ -193,10 +200,20 @@ export async function saveStoryAction(formData: FormData) {
     }
 
     await supabase.from('story_pages').delete().eq('story_id', storyId);
-    const pageCount = Math.max(pageTexts.length, uploadedPages.length);
+    let uploadedIndex = 0;
+    const imageUrls = pageImageSources.map((source) => {
+      if (source === '__upload__') {
+        const url = uploadedPages[uploadedIndex] ?? null;
+        uploadedIndex += 1;
+        return url;
+      }
+
+      return source;
+    });
+    const pageCount = Math.max(pageTexts.length, imageUrls.length);
     const pages = Array.from({ length: pageCount }, (_, index) => ({
       content: pageTexts[index] ?? '',
-      image_url: uploadedPages[index] ?? null,
+      image_url: imageUrls[index] ?? null,
       page_number: index + 1,
       story_id: storyId,
     }));
