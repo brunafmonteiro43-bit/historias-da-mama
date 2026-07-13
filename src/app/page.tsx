@@ -1,7 +1,8 @@
 import { BookOpen, Heart, Library, Send, Smile, Sparkles, UploadCloud } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { MagicBookshelf } from '@/components/magic-bookshelf';
 import { StoryCarousel } from '@/components/story-carousel';
+import { SurpriseStoryButton } from '@/components/surprise-story-button';
 import { getPublicCategories, getPublicStories } from '@/lib/public-data';
 
 const shell = 'mx-auto w-full max-w-[1240px] px-5 sm:px-6 lg:px-8';
@@ -17,7 +18,6 @@ const benefitItems = [
 
 export default async function Home() {
   const [categories, publishedStories] = await Promise.all([getPublicCategories(), getPublicStories()]);
-  const surpriseStory = publishedStories[0]?.slug ? `/historias/${publishedStories[0].slug}` : '/biblioteca';
 
   return (
     <main className="overflow-x-clip bg-[#fffaf2]">
@@ -43,17 +43,11 @@ export default async function Home() {
                 <BookOpen className="h-5 w-5 transition group-hover:-rotate-6" />
                 Explorar histórias
               </Link>
-              <Link
-                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-coral/25 bg-white/82 px-7 py-3.5 text-base font-black text-plum shadow-[0_12px_30px_rgba(59,36,107,.08)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-coral hover:bg-white hover:text-coral"
-                href={surpriseStory}
-              >
-                <Sparkles className="h-5 w-5 text-coral transition group-hover:scale-110" />
-                Surpreenda-me
-              </Link>
+              <SurpriseStoryButton stories={publishedStories} />
             </div>
           </div>
 
-          <HeroStorybookImage />
+          <MagicBookshelf stories={publishedStories} />
         </div>
       </section>
 
@@ -148,26 +142,6 @@ export default async function Home() {
         <DecorativeStorylandFooter />
       </div>
     </main>
-  );
-}
-
-function HeroStorybookImage() {
-  return (
-    <div className="hero-art-float relative mx-auto w-full max-w-[590px] md:justify-self-end">
-      <div className="absolute -inset-x-3 bottom-4 top-8 rounded-full bg-[radial-gradient(circle_at_53%_50%,rgba(255,231,163,.38),rgba(249,196,210,.24)_35%,rgba(183,155,239,.20)_64%,transparent_76%)]" aria-hidden="true" />
-      <div className="absolute -bottom-8 left-[14%] h-16 w-[72%] rounded-full bg-plum/10 blur-2xl" aria-hidden="true" />
-      <Image
-        alt="Livro aberto com castelo, árvore, flores e borboleta em um cenário mágico"
-        className="relative h-auto w-full object-contain drop-shadow-[0_24px_38px_rgba(59,36,107,.13)]"
-        height={887}
-        priority
-        quality={100}
-        sizes="(min-width: 1280px) 590px, (min-width: 768px) 45vw, 92vw"
-        src="/brand/hero-storybook-premium.png"
-        unoptimized
-        width={1774}
-      />
-    </div>
   );
 }
 
