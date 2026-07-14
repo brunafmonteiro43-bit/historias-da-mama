@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,45 +12,59 @@ type MagicBookshelfProps = {
   stories: Story[];
 };
 
-type FloatingCardLayout = {
+type SideCoverKind = 'previous' | 'next';
+
+type SideCoverLayout = {
+  baseRotate: number;
   className: string;
+  hoverRotate: number;
   imageSizes: string;
-  motion: {
-    y: number[];
-    rotate: number[];
-  };
+  rotate: number[];
+  y: number[];
 };
 
-const lateralLayouts: Record<'previous' | 'next', FloatingCardLayout> = {
+const BOOK_ILLUSTRATION_SRC = '/illustrations/livro-magico-aberto.webp';
+const AUTO_ROTATION_MS = 5500;
+
+const activeFloatY: number[] = [0, -5, 0];
+const activeFloatRotate: number[] = [0, 0.4, 0];
+
+const sideLayouts: Record<SideCoverKind, SideCoverLayout> = {
   previous: {
+    baseRotate: -7,
     className:
-      'left-[9%] top-[155px] h-[176px] w-[118px] -rotate-[7deg] sm:left-[12%] sm:top-[150px] sm:h-[188px] sm:w-[124px] md:left-[1%] md:top-[210px] md:h-[170px] md:w-[112px] xl:left-[5%] xl:top-[205px] xl:h-[188px] xl:w-[124px]',
-    imageSizes: '(min-width: 1024px) 124px, (min-width: 768px) 118px, 28vw',
-    motion: { rotate: [-7, -5.8, -7], y: [0, -6, 0] },
+      'left-[6%] top-[172px] h-[164px] w-[106px] sm:left-[13%] sm:top-[160px] sm:h-[178px] sm:w-[115px] md:left-[14%] md:top-[180px] xl:left-[12%] xl:top-[208px]',
+    hoverRotate: -6,
+    imageSizes: '(min-width: 1280px) 115px, (min-width: 640px) 115px, 28vw',
+    rotate: [-7, -6.4, -7],
+    y: [0, -5, 0],
   },
   next: {
+    baseRotate: 7,
     className:
-      'right-[9%] top-[155px] h-[176px] w-[118px] rotate-[7deg] sm:right-[12%] sm:top-[150px] sm:h-[188px] sm:w-[124px] md:right-[1%] md:top-[210px] md:h-[170px] md:w-[112px] xl:right-[5%] xl:top-[205px] xl:h-[188px] xl:w-[124px]',
-    imageSizes: '(min-width: 1024px) 124px, (min-width: 768px) 118px, 28vw',
-    motion: { rotate: [7, 5.8, 7], y: [0, -5, 0] },
+      'right-[6%] top-[172px] h-[164px] w-[106px] sm:right-[13%] sm:top-[160px] sm:h-[178px] sm:w-[115px] md:right-[14%] md:top-[180px] xl:right-[12%] xl:top-[208px]',
+    hoverRotate: 6,
+    imageSizes: '(min-width: 1280px) 115px, (min-width: 640px) 115px, 28vw',
+    rotate: [7, 6.4, 7],
+    y: [0, -5, 0],
   },
 };
 
-function selectPortalStories(stories: Story[]) {
+function selectCarouselStories(stories: Story[]) {
   const published = stories.filter((story) => story.status === 'published');
   const storyOfWeek = published.filter((story) => story.storyOfWeek);
-  const featured = published.filter(
+  const popular = published.filter(
     (story) => story.popular && !storyOfWeek.some((weekStory) => weekStory.slug === story.slug),
   );
   const recent = published
     .filter(
       (story) =>
         !storyOfWeek.some((weekStory) => weekStory.slug === story.slug) &&
-        !featured.some((featuredStory) => featuredStory.slug === story.slug),
+        !popular.some((popularStory) => popularStory.slug === story.slug),
     )
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((firstStory, secondStory) => new Date(secondStory.createdAt).getTime() - new Date(firstStory.createdAt).getTime());
 
-  return [...storyOfWeek, ...featured, ...recent].slice(0, 8);
+  return [...storyOfWeek, ...popular, ...recent].slice(0, 8);
 }
 
 function getCategoryPalette(story: Story) {
@@ -91,193 +105,203 @@ function activateWithKeyboard(event: KeyboardEvent<HTMLButtonElement>, action: (
 
 export function MagicBookshelf({ stories }: MagicBookshelfProps) {
   const reducedMotion = useReducedMotion();
+  const carouselStories = useMemo(() => selectCarouselStories(stories), [stories]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [tabVisible, setTabVisible] = useState(true);
-  const portalStories = useMemo(() => selectPortalStories(stories), [stories]);
 
   useEffect(() => {
     setActiveIndex(0);
-  }, [portalStories.length]);
+  }, [carouselStories.length]);
 
   useEffect(() => {
-    const handleVisibility = () => setTabVisible(!document.hidden);
-
-    handleVisibility();
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, []);
-
-  useEffect(() => {
-    if (reducedMotion || isPaused || !tabVisible || portalStories.length < 2) {
+    if (reducedMotion || isPaused || carouselStories.length < 2) {
       return;
     }
 
     const interval = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % portalStories.length);
-    }, 5600);
+      setActiveIndex((currentIndex) => (currentIndex + 1) % carouselStories.length);
+    }, AUTO_ROTATION_MS);
 
     return () => window.clearInterval(interval);
-  }, [isPaused, portalStories.length, reducedMotion, tabVisible]);
+  }, [carouselStories.length, isPaused, reducedMotion]);
 
-  if (portalStories.length === 0) {
+  if (carouselStories.length === 0) {
     return (
       <div className="relative mx-auto grid min-h-[360px] w-full max-w-[610px] place-items-center rounded-[2rem] bg-white/42 text-center shadow-[0_24px_70px_rgba(59,36,107,.10)] ring-1 ring-white/70">
         <div>
-          <p className="font-display text-3xl font-black text-plum">A estante esta esperando historias.</p>
+          <p className="font-display text-3xl font-black text-plum">A biblioteca está esperando histórias.</p>
           <p className="mt-2 text-sm font-bold text-slate-600">Publique a primeira aventura no painel administrativo.</p>
         </div>
       </div>
     );
   }
 
-  const activeStory = portalStories[activeIndex];
-  const previousStory = portalStories.length > 1 ? portalStories[(activeIndex - 1 + portalStories.length) % portalStories.length] : undefined;
-  const nextStory = portalStories.length > 1 ? portalStories[(activeIndex + 1) % portalStories.length] : undefined;
+  const previousIndex = (activeIndex - 1 + carouselStories.length) % carouselStories.length;
+  const nextIndex = (activeIndex + 1) % carouselStories.length;
+  const previousStory = carouselStories[previousIndex];
+  const activeStory = carouselStories[activeIndex];
+  const nextStory = carouselStories[nextIndex];
 
   return (
     <motion.div
-      aria-label="Portal magico de historias"
-      className="relative mx-auto h-[570px] w-full max-w-[720px] overflow-visible sm:h-[610px] md:h-[620px] md:justify-self-end xl:h-[655px]"
+      aria-label="Portal mágico de histórias"
+      className="relative mx-auto h-[570px] w-full max-w-[720px] overflow-visible sm:h-[620px] xl:h-[655px]"
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 22 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: 'easeOut' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="pointer-events-none absolute inset-x-0 bottom-7 top-0 z-0 rounded-full bg-[radial-gradient(circle_at_52%_48%,rgba(255,231,163,.30),rgba(249,196,210,.18)_38%,rgba(183,155,239,.18)_65%,transparent_80%)] blur-sm" aria-hidden="true" />
-      <MagicParticles reducedMotion={Boolean(reducedMotion)} />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-10 top-0 z-0 rounded-full bg-[radial-gradient(circle_at_50%_48%,rgba(255,231,163,.32),rgba(249,196,210,.18)_38%,rgba(183,155,239,.20)_66%,transparent_82%)] blur-sm"
+        aria-hidden="true"
+      />
+
+      <BookBaseImage />
+
+      {carouselStories.length > 1 ? (
+        <>
+          <SideStoryCover
+            kind="previous"
+            layout={sideLayouts.previous}
+            reducedMotion={Boolean(reducedMotion)}
+            story={previousStory}
+            onSelect={() => setActiveIndex(previousIndex)}
+          />
+          <SideStoryCover
+            kind="next"
+            layout={sideLayouts.next}
+            reducedMotion={Boolean(reducedMotion)}
+            story={nextStory}
+            onSelect={() => setActiveIndex(nextIndex)}
+          />
+        </>
+      ) : null}
 
       <motion.div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-[98px] z-20 mx-auto h-[205px] w-[min(94vw,650px)] sm:h-[235px] md:bottom-[114px] md:h-[236px] md:w-[min(50vw,500px)] xl:bottom-[110px] xl:h-[292px] xl:w-[min(48vw,650px)]"
-        animate={reducedMotion ? undefined : { y: [0, -3, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute left-1/2 top-[74px] z-40 -ml-[82px] h-[250px] w-[164px] sm:top-[76px] sm:-ml-[95px] sm:h-[290px] sm:w-[190px] xl:top-[82px]"
+        key={activeStory.slug}
+        initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 10, scale: 0.98 }}
+        animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: activeFloatY, rotate: activeFloatRotate, scale: 1 }}
+        transition={
+          reducedMotion
+            ? { duration: 0.2 }
+            : {
+                opacity: { duration: 0.25 },
+                scale: { duration: 0.25 },
+                y: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
+                rotate: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
+              }
+        }
       >
-        <OpenMagicBook />
-      </motion.div>
-
-      <MagicLight reducedMotion={Boolean(reducedMotion)} />
-
-      {previousStory ? (
-        <StoryCoverButton
-          kind="previous"
-          layout={lateralLayouts.previous}
-          reducedMotion={Boolean(reducedMotion)}
-          story={previousStory}
-          onSelect={() => setActiveIndex((activeIndex - 1 + portalStories.length) % portalStories.length)}
-        />
-      ) : null}
-
-      {nextStory && nextStory.slug !== previousStory?.slug ? (
-        <StoryCoverButton
-          kind="next"
-          layout={lateralLayouts.next}
-          reducedMotion={Boolean(reducedMotion)}
-          story={nextStory}
-          onSelect={() => setActiveIndex((activeIndex + 1) % portalStories.length)}
-        />
-      ) : null}
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          className="absolute left-1/2 top-[34px] z-50 -ml-[90px] h-[278px] w-[180px] sm:top-[26px] sm:-ml-[96px] sm:h-[296px] sm:w-[192px] md:top-[96px] md:-ml-[92px] md:h-[286px] md:w-[184px] xl:top-[84px] xl:-ml-[99px] xl:h-[306px] xl:w-[198px]"
-          key={activeStory.slug}
-          initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 14, scale: 0.96 }}
-          animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: [0, -6, 0], rotate: [0, 0.45, 0] }}
-          exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -10, scale: 0.98 }}
-          transition={
-            reducedMotion
-              ? { duration: 0.2 }
-              : {
-                  opacity: { duration: 0.25 },
-                  scale: { duration: 0.25 },
-                  y: { duration: 6.2, repeat: Infinity, ease: 'easeInOut' },
-                  rotate: { duration: 6.2, repeat: Infinity, ease: 'easeInOut' },
-                }
-          }
-        >
-          <Link
-            aria-label={`Ler historia ${activeStory.title}`}
-            className="group relative block h-full w-full overflow-hidden rounded-[1.25rem] bg-white p-3 shadow-[0_28px_55px_rgba(59,36,107,.25)] outline-none ring-1 ring-white/90 transition focus-visible:ring-4 focus-visible:ring-coral/55"
-            href={`/historias/${activeStory.slug}`}
-            onKeyDown={openWithSpace}
-          >
-            <span className="relative block h-full w-full overflow-hidden rounded-[0.95rem] bg-cream">
-              <StoryCoverImage priority sizes="(min-width: 768px) 198px, 180px" story={activeStory} />
-            </span>
-            <span className="pointer-events-none absolute inset-3 rounded-[0.95rem] bg-gradient-to-t from-plum/18 via-transparent to-white/20 opacity-70 transition group-hover:opacity-45" aria-hidden="true" />
-          </Link>
-        </motion.div>
-      </AnimatePresence>
-
-      <div className="absolute inset-x-0 bottom-[22px] z-[60] flex flex-col items-center gap-4 sm:bottom-[24px] md:bottom-[28px]">
         <Link
-          aria-label={`Ler esta historia: ${activeStory.title}`}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-plum px-7 py-3 text-base font-black text-white shadow-[0_18px_42px_rgba(59,36,107,.24)] outline-none transition duration-300 hover:-translate-y-1 hover:bg-coral hover:shadow-[0_24px_52px_rgba(243,111,145,.28)] focus-visible:ring-4 focus-visible:ring-coral/45"
+          aria-label={`Abrir história ${activeStory.title}`}
+          className="group relative block h-full w-full overflow-hidden rounded-[1.4rem] bg-white p-2.5 shadow-[0_28px_60px_rgba(59,36,107,.26)] outline-none ring-1 ring-white/90 transition focus-visible:ring-4 focus-visible:ring-coral/55 sm:rounded-[1.55rem] sm:p-3"
           href={`/historias/${activeStory.slug}`}
           onKeyDown={openWithSpace}
         >
-          <BookOpen className="h-5 w-5" />
-          Ler esta historia
+          <span className="relative block h-full w-full overflow-hidden rounded-[1rem] bg-cream sm:rounded-[1.12rem]">
+            <StoryCoverImage priority sizes="(min-width: 640px) 190px, 164px" story={activeStory} />
+          </span>
+          <span className="pointer-events-none absolute inset-3 rounded-[1rem] bg-gradient-to-t from-plum/18 via-transparent to-white/22 opacity-70 transition group-hover:opacity-45" aria-hidden="true" />
         </Link>
+      </motion.div>
 
-        <div className="flex items-center justify-center gap-2" role="tablist" aria-label="Escolher historia em destaque">
-          {portalStories.map((story, index) => {
-            const active = index === activeIndex;
+      <div className="absolute inset-x-0 bottom-[102px] z-50 flex items-center justify-center gap-2 sm:bottom-[104px]">
+        {carouselStories.map((story, index) => {
+          const isActive = index === activeIndex;
 
-            return (
-              <button
-                aria-label={`Mostrar historia ${story.title}`}
-                aria-selected={active}
-                className={`h-7 rounded-full px-1.5 outline-none transition focus-visible:ring-4 focus-visible:ring-coral/45 ${active ? 'w-10' : 'w-7'}`}
-                key={story.slug}
-                onClick={() => setActiveIndex(index)}
-                onKeyDown={(event) => activateWithKeyboard(event, () => setActiveIndex(index))}
-                role="tab"
-                type="button"
-              >
-                <span
-                  className={`mx-auto block h-3 rounded-full transition-all ${active ? 'w-8 bg-plum shadow-[0_7px_16px_rgba(59,36,107,.22)]' : 'w-3 bg-plum/28 hover:bg-plum/45'}`}
-                />
-              </button>
-            );
-          })}
-        </div>
+          return (
+            <button
+              aria-label={`Selecionar história ${story.title}`}
+              aria-current={isActive ? 'true' : undefined}
+              className="grid h-7 w-7 place-items-center rounded-full outline-none transition focus-visible:ring-4 focus-visible:ring-coral/45"
+              key={story.slug}
+              onClick={() => setActiveIndex(index)}
+              onKeyDown={(event) => activateWithKeyboard(event, () => setActiveIndex(index))}
+              type="button"
+            >
+              <span
+                className={`block h-2.5 rounded-full transition-all ${isActive ? 'w-8 bg-plum shadow-[0_7px_16px_rgba(59,36,107,.22)]' : 'w-2.5 bg-plum/25 hover:bg-plum/45'}`}
+              />
+            </button>
+          );
+        })}
       </div>
+
+      <Link
+        aria-label={`Ler esta história: ${activeStory.title}`}
+        className="absolute bottom-[34px] left-1/2 z-50 inline-flex min-h-12 -translate-x-1/2 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-plum px-7 py-3 text-base font-black text-white shadow-[0_18px_42px_rgba(59,36,107,.24)] outline-none transition duration-300 hover:-translate-y-1 hover:bg-coral hover:shadow-[0_24px_52px_rgba(243,111,145,.28)] focus-visible:ring-4 focus-visible:ring-coral/45"
+        href={`/historias/${activeStory.slug}`}
+        onKeyDown={openWithSpace}
+      >
+        <BookOpen className="h-5 w-5" />
+        Ler esta história
+      </Link>
     </motion.div>
   );
 }
 
-function StoryCoverButton({
+function BookBaseImage() {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (imageFailed) {
+    return <BookBaseFallback />;
+  }
+
+  return (
+    <div className="pointer-events-none absolute bottom-[86px] left-1/2 z-10 h-[330px] w-[min(95vw,620px)] -translate-x-1/2 sm:bottom-[86px] sm:h-[360px] xl:bottom-[82px]" aria-hidden="true">
+      <Image
+        alt=""
+        className="object-contain"
+        fill
+        onError={() => setImageFailed(true)}
+        priority
+        sizes="(min-width: 1280px) 620px, 95vw"
+        src={BOOK_ILLUSTRATION_SRC}
+      />
+    </div>
+  );
+}
+
+function BookBaseFallback() {
+  return (
+    <div className="pointer-events-none absolute bottom-[96px] left-1/2 z-10 h-[300px] w-[min(95vw,620px)] -translate-x-1/2 sm:h-[340px]" aria-hidden="true">
+      <div className="absolute inset-x-[6%] bottom-8 h-20 rounded-[50%] bg-plum/18 blur-2xl" />
+      <div className="absolute left-1/2 top-[9%] h-[72%] w-[46%] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.78)_0%,rgba(255,231,163,.52)_32%,rgba(255,207,134,.20)_58%,transparent_76%)] blur-md" />
+      <div className="absolute inset-x-[4%] bottom-14 h-[34%] rounded-[46%_46%_18%_18%] bg-[linear-gradient(180deg,#fffaf0_0%,#ffe7a3_68%,#6a3a76_69%,#3b246b_100%)] shadow-[0_24px_42px_rgba(59,36,107,.18)]" />
+    </div>
+  );
+}
+
+function SideStoryCover({
   kind,
   layout,
   onSelect,
   reducedMotion,
   story,
 }: {
-  kind: 'previous' | 'next';
-  layout: FloatingCardLayout;
+  kind: SideCoverKind;
+  layout: SideCoverLayout;
   onSelect: () => void;
   reducedMotion: boolean;
   story: Story;
 }) {
   return (
     <motion.button
-      aria-label={`${kind === 'previous' ? 'Ver historia anterior' : 'Ver proxima historia'}: ${story.title}`}
-      className={`absolute z-40 overflow-hidden rounded-[1.05rem] bg-white p-2 shadow-[0_22px_38px_rgba(59,36,107,.20)] outline-none ring-1 ring-white/85 transition focus-visible:ring-4 focus-visible:ring-coral/50 ${layout.className}`}
-      animate={reducedMotion ? undefined : { y: layout.motion.y, rotate: layout.motion.rotate }}
+      aria-label={`${kind === 'previous' ? 'Mostrar história anterior' : 'Mostrar próxima história'}: ${story.title}`}
+      className={`absolute z-30 overflow-hidden rounded-[1.2rem] bg-white p-2 shadow-[0_22px_42px_rgba(59,36,107,.20)] outline-none ring-1 ring-white/85 transition focus-visible:ring-4 focus-visible:ring-coral/50 ${layout.className}`}
+      animate={reducedMotion ? { rotate: layout.baseRotate } : { y: layout.y, rotate: layout.rotate }}
       onClick={onSelect}
       onKeyDown={(event) => activateWithKeyboard(event, onSelect)}
-      transition={{ duration: kind === 'previous' ? 5.8 : 6.5, repeat: reducedMotion ? 0 : Infinity, ease: 'easeInOut' }}
+      transition={{ duration: kind === 'previous' ? 5.8 : 6.2, repeat: reducedMotion ? 0 : Infinity, ease: 'easeInOut' }}
       type="button"
-      whileHover={reducedMotion ? undefined : { scale: 1.05, y: -8 }}
+      whileHover={reducedMotion ? undefined : { scale: 1.05, rotate: layout.hoverRotate }}
     >
-      <span className="relative block h-full w-full overflow-hidden rounded-[0.78rem] bg-cream">
+      <span className="relative block h-full w-full overflow-hidden rounded-[0.85rem] bg-cream">
         <StoryCoverImage sizes={layout.imageSizes} story={story} />
       </span>
-      <span className="pointer-events-none absolute inset-2 rounded-[0.78rem] bg-gradient-to-t from-plum/20 via-transparent to-white/18" aria-hidden="true" />
+      <span className="pointer-events-none absolute inset-2 rounded-[0.85rem] bg-gradient-to-t from-plum/20 via-transparent to-white/18" aria-hidden="true" />
     </motion.button>
   );
 }
@@ -306,119 +330,5 @@ function BookPlaceholder({ story }: { story: Story }) {
         {story.category}
       </span>
     </span>
-  );
-}
-
-function MagicLight({ reducedMotion }: { reducedMotion: boolean }) {
-  return (
-    <motion.div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 bottom-[184px] z-30 mx-auto h-[270px] w-[min(92vw,560px)] sm:bottom-[205px] md:bottom-[218px] md:h-[248px] md:w-[min(48vw,460px)] xl:bottom-[228px] xl:h-[270px] xl:w-[min(92vw,560px)]"
-      animate={reducedMotion ? { opacity: 0.88 } : { opacity: [0.72, 1, 0.78] }}
-      transition={{ duration: 4.6, repeat: reducedMotion ? 0 : Infinity, ease: 'easeInOut' }}
-    >
-      <div className="absolute left-1/2 top-[72%] h-24 w-24 -translate-x-1/2 rounded-full bg-white/85 blur-xl" />
-      <div className="absolute left-1/2 top-[12%] h-60 w-52 -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,.86)_0%,rgba(255,231,163,.56)_28%,rgba(255,207,134,.18)_58%,transparent_72%)] blur-sm" />
-      <div className="absolute left-1/2 top-[12%] h-[270px] w-28 -translate-x-1/2 origin-bottom bg-[linear-gradient(0deg,rgba(255,231,163,.72)_0%,rgba(255,255,255,.62)_44%,transparent_100%)] blur-md [clip-path:polygon(42%_100%,58%_100%,100%_0,0_0)]" />
-      <div className="absolute left-[32%] top-[28%] h-56 w-20 -rotate-[18deg] origin-bottom bg-[linear-gradient(0deg,rgba(255,207,134,.42),transparent_86%)] blur-md [clip-path:polygon(45%_100%,62%_100%,100%_0,0_0)]" />
-      <div className="absolute right-[32%] top-[28%] h-56 w-20 rotate-[18deg] origin-bottom bg-[linear-gradient(0deg,rgba(255,207,134,.42),transparent_86%)] blur-md [clip-path:polygon(38%_100%,55%_100%,100%_0,0_0)]" />
-      <div className="absolute left-1/2 top-[6%] h-48 w-48 -translate-x-1/2 rounded-full bg-sun/28 blur-2xl" />
-    </motion.div>
-  );
-}
-
-function OpenMagicBook() {
-  return (
-    <div className="absolute inset-x-0 bottom-0 h-full">
-      <div className="absolute inset-x-[6%] bottom-3 h-14 rounded-[50%] bg-plum/18 blur-xl" />
-      <div className="absolute inset-x-[5%] bottom-3 h-[34%] rounded-b-[2rem] bg-[linear-gradient(180deg,#7c4cb0_0%,#4f2a82_68%,#3b246b_100%)] shadow-[0_18px_26px_rgba(59,36,107,.25)]" />
-      <div className="absolute left-[4%] right-1/2 bottom-[18%] h-[48%] origin-bottom-right -skew-y-[8deg] rounded-bl-[1.7rem] rounded-tl-[4.2rem] bg-[linear-gradient(160deg,#fffdf6_0%,#fff2c7_62%,#d59a63_100%)] shadow-[inset_-15px_-20px_32px_rgba(196,125,68,.20),0_16px_18px_rgba(59,36,107,.12)]" />
-      <div className="absolute left-1/2 right-[4%] bottom-[18%] h-[48%] origin-bottom-left skew-y-[8deg] rounded-br-[1.7rem] rounded-tr-[4.2rem] bg-[linear-gradient(200deg,#fffdf6_0%,#fff2c7_62%,#d59a63_100%)] shadow-[inset_15px_-20px_32px_rgba(196,125,68,.20),0_16px_18px_rgba(59,36,107,.12)]" />
-      <div className="absolute left-[8%] right-1/2 bottom-[36%] h-[23%] origin-bottom-right -skew-y-[11deg] rounded-tl-[3.5rem] bg-[#fffaf0] shadow-[0_10px_0_rgba(227,174,105,.42),0_20px_0_rgba(255,246,224,.95),0_30px_0_rgba(205,142,83,.36)]" />
-      <div className="absolute left-1/2 right-[8%] bottom-[36%] h-[23%] origin-bottom-left skew-y-[11deg] rounded-tr-[3.5rem] bg-[#fffaf0] shadow-[0_10px_0_rgba(227,174,105,.42),0_20px_0_rgba(255,246,224,.95),0_30px_0_rgba(205,142,83,.36)]" />
-      <div className="absolute left-[11%] right-1/2 bottom-[54%] h-3 origin-bottom-right -skew-y-[10deg] rounded-full bg-white/82" />
-      <div className="absolute left-1/2 right-[11%] bottom-[54%] h-3 origin-bottom-left skew-y-[10deg] rounded-full bg-white/82" />
-      <div className="absolute left-1/2 bottom-[13%] h-[39%] w-[76px] -translate-x-1/2 rounded-t-[999px] bg-[linear-gradient(180deg,#ffe7a3_0%,#f6b44f_42%,#4f2a82_43%,#3b246b_100%)] shadow-[inset_0_5px_0_rgba(255,255,255,.35)]" />
-      <div className="absolute left-[9%] right-[9%] bottom-[20%] h-[1px] bg-amber-900/12 shadow-[0_13px_0_rgba(146,86,47,.14),0_26px_0_rgba(146,86,47,.12)]" />
-    </div>
-  );
-}
-
-function MagicParticles({ reducedMotion }: { reducedMotion: boolean }) {
-  const particles: Array<{ className: string; delay: number }> = [
-    { className: 'left-[11%] top-[18%] h-2 w-2 bg-white', delay: 0 },
-    { className: 'left-[21%] top-[33%] h-2.5 w-2.5 bg-sun', delay: 0.7 },
-    { className: 'left-[32%] top-[12%] h-1.5 w-1.5 bg-white', delay: 1.1 },
-    { className: 'right-[22%] top-[14%] h-2.5 w-2.5 bg-sun', delay: 0.4 },
-    { className: 'right-[11%] top-[35%] h-1.5 w-1.5 bg-white', delay: 1.5 },
-    { className: 'right-[26%] bottom-[34%] h-2 w-2 bg-white', delay: 0.9 },
-    { className: 'left-[16%] bottom-[31%] h-2 w-2 bg-sun', delay: 1.8 },
-  ];
-
-  return (
-    <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true">
-      {particles.map((particle, index) => (
-        <motion.span
-          animate={reducedMotion ? { opacity: 0.55 } : { opacity: [0.25, 0.95, 0.3], scale: [0.9, 1.35, 0.92] }}
-          className={`absolute rounded-full shadow-[0_0_18px_rgba(255,231,163,.95)] ${particle.className}`}
-          key={index}
-          transition={{ delay: particle.delay, duration: 2.8 + index * 0.25, repeat: reducedMotion ? 0 : Infinity, ease: 'easeInOut' }}
-        />
-      ))}
-
-      <DecorativeLeaf className="left-[6%] bottom-[20%] bg-aqua/55" delay={0.2} reducedMotion={reducedMotion} rotate={-16} />
-      <DecorativeLeaf className="right-[5%] bottom-[18%] bg-[#a9d9bd]/70" delay={0.8} reducedMotion={reducedMotion} rotate={18} />
-      <DecorativeLeaf className="left-[25%] top-[24%] bg-[#a9d9bd]/48" delay={1.2} reducedMotion={reducedMotion} rotate={-28} />
-      <DecorativePetal className="right-[14%] top-[28%]" delay={0.5} reducedMotion={reducedMotion} rotate={16} />
-      <DecorativePetal className="left-[12%] top-[39%]" delay={1.1} reducedMotion={reducedMotion} rotate={-20} />
-      <DecorativePetal className="left-[23%] bottom-[7%]" delay={0.9} reducedMotion={reducedMotion} rotate={74} />
-
-      <span className="absolute right-[17%] top-[19%] text-4xl text-sun/90">✦</span>
-      <span className="absolute left-[38%] top-[39%] text-2xl text-sun/80">✦</span>
-      <span className="absolute right-[34%] top-[33%] text-xl text-white">✦</span>
-      <span className="absolute left-[45%] bottom-[30%] text-lg text-sun">✦</span>
-    </div>
-  );
-}
-
-function DecorativeLeaf({
-  className,
-  delay,
-  reducedMotion,
-  rotate,
-}: {
-  className: string;
-  delay: number;
-  reducedMotion: boolean;
-  rotate: number;
-}) {
-  return (
-    <motion.span
-      className={`absolute h-5 w-10 rounded-[100%_0] ${className}`}
-      style={{ rotate }}
-      animate={reducedMotion ? undefined : { y: [0, -7, 0], rotate: [rotate, rotate + 8, rotate] }}
-      transition={{ delay, duration: 7.2, repeat: Infinity, ease: 'easeInOut' }}
-    />
-  );
-}
-
-function DecorativePetal({
-  className,
-  delay,
-  reducedMotion,
-  rotate,
-}: {
-  className: string;
-  delay: number;
-  reducedMotion: boolean;
-  rotate: number;
-}) {
-  return (
-    <motion.span
-      className={`absolute h-8 w-5 rounded-full rounded-br-sm bg-rose/80 ${className}`}
-      style={{ rotate }}
-      animate={reducedMotion ? undefined : { x: [0, 6, 0], y: [0, -9, 0], rotate: [rotate, rotate - 10, rotate] }}
-      transition={{ delay, duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
-    />
   );
 }
