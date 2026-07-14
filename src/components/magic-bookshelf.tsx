@@ -309,7 +309,17 @@ function FloatingStoryCards({
   reducedMotion: boolean;
   stories: Story[];
 }) {
-  const layouts = [
+  type FloatingCardLayout = {
+    wrap: string;
+    size: string;
+    ring: string;
+    z: string;
+    imageClass: string;
+    floatY: number[];
+    rotate: number[];
+  };
+
+  const layouts: FloatingCardLayout[] = [
     {
       wrap: 'left-[10%] top-[24%] sm:left-[12%] sm:top-[24%]',
       size: 'h-[138px] w-[90px] sm:h-[168px] sm:w-[110px]',
@@ -346,7 +356,7 @@ function FloatingStoryCards({
       floatY: [0, 6, 0],
       rotate: [-2, 1, -2],
     },
-  ] as const;
+  ];
 
   return (
     <>
