@@ -126,10 +126,10 @@ export function MagicBookshelf({
         className="absolute -inset-12 rounded-full bg-[radial-gradient(circle_at_50%_45%,rgba(255,231,163,.55),rgba(249,196,210,.34)_38%,rgba(183,155,239,.26)_64%,transparent_78%)] blur-xl"
       />
 
-      <div className="relative min-h-[610px] overflow-visible px-2 pb-8 pt-4 sm:px-5 md:min-h-[660px]">
+      <div className="relative min-h-[585px] overflow-visible px-2 pb-8 pt-4 sm:px-5 md:min-h-[660px]">
         <MagicParticles reducedMotion={Boolean(reducedMotion)} />
 
-        <div className="relative mx-auto min-h-[590px] max-w-[700px] md:min-h-[640px]">
+        <div className="relative mx-auto min-h-[565px] max-w-[700px] md:min-h-[640px]">
           <div
             aria-hidden="true"
             className="absolute left-1/2 top-[43%] h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.96)_0%,rgba(255,246,210,.82)_30%,rgba(249,196,210,.40)_58%,rgba(183,155,239,.19)_74%,transparent_77%)] blur-sm sm:h-[560px] sm:w-[560px]"
@@ -137,7 +137,7 @@ export function MagicBookshelf({
 
           <motion.div
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-[78px] left-1/2 z-10 h-[300px] w-[96vw] max-w-[650px] -translate-x-1/2 sm:h-[340px] sm:w-[650px]"
+            className="pointer-events-none absolute bottom-[40px] left-1/2 z-10 w-[96vw] max-w-[820px] -translate-x-1/2"
             animate={reducedMotion ? undefined : { y: [0, -3, 0] }}
             transition={{
               duration: 7,
@@ -147,36 +147,16 @@ export function MagicBookshelf({
           >
             <Image
               alt=""
-              className="object-contain"
-              fill
+              className="h-auto w-full object-contain"
+              height={1024}
               priority
-              sizes="(min-width: 640px) 650px, 96vw"
-            src="/illustrations/magic-book.png"
+              sizes="(min-width: 640px) 820px, 96vw"
+              src="/illustrations/magic-book.png"
+              width={1536}
             />
           </motion.div>
 
-          <motion.div
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-[215px] left-1/2 z-20 h-[285px] w-[330px] -translate-x-1/2 overflow-hidden"
-            animate={
-              reducedMotion
-                ? { opacity: 0.65 }
-                : {
-                    opacity: [0.48, 0.88, 0.56],
-                    scaleY: [0.97, 1.05, 0.99],
-                  }
-            }
-            transition={{
-              duration: 4,
-              repeat: reducedMotion ? 0 : Infinity,
-              ease: 'easeInOut',
-            }}
-          >
-            <div className="absolute bottom-0 left-1/2 h-full w-32 -translate-x-1/2 bg-[linear-gradient(to_top,rgba(255,211,92,.88),rgba(255,243,188,.55)_48%,transparent_100%)] blur-2xl" />
-            <div className="absolute bottom-0 left-1/2 h-full w-3 -translate-x-1/2 bg-white/75 blur-md" />
-            <div className="absolute bottom-3 left-[16%] h-[84%] w-12 -rotate-[16deg] bg-[linear-gradient(to_top,rgba(255,222,132,.55),transparent)] blur-lg" />
-            <div className="absolute bottom-3 right-[16%] h-[84%] w-12 rotate-[16deg] bg-[linear-gradient(to_top,rgba(255,222,132,.55),transparent)] blur-lg" />
-          </motion.div>
+
 
           {heroStories.length > 1 ? (
             <FloatingSideCover
@@ -190,7 +170,7 @@ export function MagicBookshelf({
           <AnimatePresence mode="wait">
             <motion.div
               key={activeStory.slug}
-              className="absolute left-1/2 top-[62px] z-40 -translate-x-1/2 sm:top-[54px]"
+              className="absolute left-1/2 top-[86px] z-40 -translate-x-1/2 sm:top-[72px]"
               initial={
                 reducedMotion
                   ? { opacity: 1 }
@@ -220,7 +200,7 @@ export function MagicBookshelf({
             />
           ) : null}
 
-          <div className="absolute bottom-[48px] left-1/2 z-50 -translate-x-1/2">
+          <div className="absolute bottom-[42px] left-1/2 z-50 -translate-x-1/2">
             <Link
               className="inline-flex min-h-12 items-center gap-2 whitespace-nowrap rounded-full bg-[#3b246b] px-7 py-3.5 text-sm font-black text-white shadow-[0_16px_34px_rgba(59,36,107,.25)] transition hover:-translate-y-1 hover:bg-[#f36f91] hover:shadow-[0_20px_38px_rgba(59,36,107,.30)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#f36f91]/40"
               href={`/historias/${activeStory.slug}`}
@@ -267,7 +247,7 @@ function FeaturedStoryCover({
     >
       <Link
         aria-label={`Abrir história ${story.title}`}
-        className="group relative block h-[250px] w-[164px] overflow-hidden rounded-[1.5rem] bg-white shadow-[0_30px_60px_rgba(59,36,107,.30)] ring-[11px] ring-white transition duration-300 hover:-translate-y-2 hover:scale-[1.035] focus-visible:outline-none focus-visible:ring-[11px] focus-visible:ring-white sm:h-[300px] sm:w-[196px]"
+        className="group relative block h-[244px] w-[160px] overflow-hidden rounded-[1.5rem] bg-white shadow-[0_30px_60px_rgba(59,36,107,.30)] ring-[11px] ring-white transition duration-300 hover:-translate-y-2 hover:scale-[1.035] focus-visible:outline-none focus-visible:ring-[11px] focus-visible:ring-white sm:h-[286px] sm:w-[188px]"
         href={`/historias/${story.slug}`}
         onKeyDown={openWithSpace}
       >
@@ -277,7 +257,7 @@ function FeaturedStoryCover({
             className="object-cover"
             fill
             priority
-            sizes="(min-width: 640px) 196px, 164px"
+            sizes="(min-width: 640px) 188px, 160px"
             src={story.coverUrl}
           />
         ) : (
@@ -321,8 +301,8 @@ function FloatingSideCover({
 }) {
   const position =
     side === 'left'
-      ? 'left-[5%] top-[225px] sm:left-[9%] sm:top-[230px]'
-      : 'right-[5%] top-[225px] sm:right-[9%] sm:top-[230px]';
+      ? 'left-1/2 top-[238px] -translate-x-[205px] sm:top-[225px] sm:-translate-x-[292px]'
+      : 'left-1/2 top-[238px] translate-x-[108px] sm:top-[225px] sm:translate-x-[174px]';
 
   const rotation: number[] =
     side === 'left' ? [-7, -5.5, -7] : [7, 5.5, 7];
@@ -333,7 +313,7 @@ function FloatingSideCover({
   return (
     <motion.button
       aria-label={`Destacar história ${story.title}`}
-      className={`absolute ${position} z-30 h-[150px] w-[98px] overflow-hidden rounded-[1.15rem] bg-white p-0 shadow-[0_20px_42px_rgba(59,36,107,.22)] ring-[7px] ring-white transition focus-visible:outline-none focus-visible:ring-[#f36f91]/55 sm:h-[180px] sm:w-[118px]`}
+      className={`absolute ${position} z-30 h-[140px] w-[92px] overflow-hidden rounded-[1.15rem] bg-white p-0 shadow-[0_20px_42px_rgba(59,36,107,.22)] ring-[7px] ring-white transition focus-visible:outline-none focus-visible:ring-[#f36f91]/55 sm:h-[176px] sm:w-[114px]`}
       onClick={onSelect}
       type="button"
       initial={
@@ -384,7 +364,7 @@ function FloatingSideCover({
           className="object-cover"
           fill
           loading="lazy"
-          sizes="(min-width: 640px) 118px, 98px"
+          sizes="(min-width: 640px) 114px, 92px"
           src={story.coverUrl}
         />
       ) : (
@@ -409,7 +389,7 @@ function StoryDots({
   stories: Story[];
 }) {
   return (
-    <div className="absolute bottom-[10px] left-1/2 z-50 flex -translate-x-1/2 items-center justify-center gap-2">
+    <div className="absolute bottom-[4px] left-1/2 z-50 flex -translate-x-1/2 items-center justify-center gap-2">
       {stories.map((story, index) => (
         <button
           aria-label={`Mostrar ${story.title}`}
