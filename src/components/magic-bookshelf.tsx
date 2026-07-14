@@ -105,7 +105,7 @@ export function MagicBookshelf({
   const activeStory = heroStories[activeIndex];
   const floatingStories = heroStories
     .filter((_, index) => index !== activeIndex)
-    .slice(0, 4);
+    .slice(0, 2);
 
   function selectStory(story: Story) {
     const nextIndex = heroStories.findIndex(
@@ -155,10 +155,34 @@ export function MagicBookshelf({
 
           <MagicOpenBook reducedMotion={Boolean(reducedMotion)} />
 
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-[27%] left-1/2 z-20 h-[250px] w-[280px] -translate-x-1/2 overflow-hidden"
+            animate={
+              reducedMotion
+                ? { opacity: 0.72 }
+                : {
+                    opacity: [0.48, 0.9, 0.58],
+                    scaleY: [0.96, 1.05, 0.98],
+                  }
+            }
+            transition={{
+              duration: 3.8,
+              repeat: reducedMotion ? 0 : Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <div className="absolute bottom-0 left-1/2 h-full w-32 -translate-x-1/2 bg-[linear-gradient(to_top,rgba(255,216,112,.95),rgba(255,240,178,.62)_48%,transparent_100%)] blur-2xl" />
+            <div className="absolute bottom-0 left-1/2 h-full w-3 -translate-x-1/2 bg-white/80 blur-md" />
+            <div className="absolute bottom-2 left-[18%] h-[88%] w-10 -rotate-[17deg] bg-[linear-gradient(to_top,rgba(255,221,130,.65),transparent)] blur-lg" />
+            <div className="absolute bottom-2 right-[18%] h-[88%] w-10 rotate-[17deg] bg-[linear-gradient(to_top,rgba(255,221,130,.65),transparent)] blur-lg" />
+          </motion.div>
+
+
           <AnimatePresence mode="wait">
             <motion.div
               key={activeStory.slug}
-              className="absolute left-1/2 top-[14%] z-30 -translate-x-1/2"
+              className="absolute left-1/2 top-[15%] z-30 -translate-x-1/2"
               initial={
                 reducedMotion
                   ? { opacity: 1 }
@@ -192,7 +216,7 @@ export function MagicBookshelf({
             onSelect={setActiveIndex}
           />
 
-          <div className="absolute bottom-[8%] left-1/2 z-30 -translate-x-1/2">
+          <div className="absolute bottom-[9%] left-1/2 z-30 -translate-x-1/2">
             <Link
               className="inline-flex items-center gap-2 rounded-full bg-plum px-6 py-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(59,36,107,.24)] transition hover:-translate-y-1 hover:shadow-[0_20px_38px_rgba(59,36,107,.30)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-coral/45"
               href={`/historias/${activeStory.slug}`}
@@ -234,7 +258,7 @@ function FeaturedStoryCard({
     >
       <Link
         aria-label={`Abrir história ${story.title}`}
-        className="relative block h-[230px] w-[150px] overflow-hidden rounded-[1.35rem] bg-white shadow-[0_28px_50px_rgba(59,36,107,.28)] ring-[10px] ring-white/72 transition duration-300 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_34px_60px_rgba(59,36,107,.34)] focus-visible:outline-none focus-visible:ring-[10px] focus-visible:ring-coral/55 sm:h-[270px] sm:w-[176px]"
+        className="relative block h-[230px] w-[150px] overflow-hidden rounded-[1.35rem] bg-white shadow-[0_28px_50px_rgba(59,36,107,.28)] ring-[12px] ring-white transition duration-300 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_34px_60px_rgba(59,36,107,.34)] focus-visible:outline-none focus-visible:ring-[12px] focus-visible:ring-white sm:h-[270px] sm:w-[176px]"
         href={`/historias/${story.slug}`}
         onKeyDown={openWithSpace}
       >
@@ -286,10 +310,8 @@ function FloatingStoryCards({
   stories: Story[];
 }) {
   const positions = [
-    'left-[1%] top-[22%] sm:left-[5%]',
-    'right-[1%] top-[22%] sm:right-[5%]',
-    'bottom-[18%] left-[7%] sm:left-[11%]',
-    'bottom-[18%] right-[7%] sm:right-[11%]',
+    'left-[7%] top-[29%] sm:left-[11%]',
+    'right-[7%] top-[29%] sm:right-[11%]',
   ];
 
   return (
@@ -297,7 +319,7 @@ function FloatingStoryCards({
       {stories.map((story, index) => (
         <motion.button
           aria-label={`Destacar história ${story.title}`}
-          className={`absolute z-20 ${positions[index]} group h-[118px] w-[78px] overflow-hidden rounded-[1rem] bg-white p-0 shadow-[0_18px_36px_rgba(59,36,107,.18)] ring-[6px] ring-white/65 transition focus-visible:outline-none focus-visible:ring-coral/50 sm:h-[142px] sm:w-[92px]`}
+          className={`absolute z-20 ${positions[index]} group h-[148px] w-[96px] overflow-hidden rounded-[1rem] bg-white p-0 shadow-[0_18px_36px_rgba(59,36,107,.18)] ring-[6px] ring-white/65 transition focus-visible:outline-none focus-visible:ring-coral/50 sm:h-[172px] sm:w-[112px]`}
           key={`${activeStory.slug}-${story.slug}`}
           onClick={() => onSelect(story)}
           type="button"
@@ -346,7 +368,7 @@ function FloatingStoryCards({
               className="h-full w-full object-cover"
               fill
               loading="lazy"
-              sizes="(min-width: 640px) 92px, 78px"
+              sizes="(min-width: 640px) 112px, 96px"
               src={story.coverUrl}
             />
           ) : (
@@ -375,7 +397,7 @@ function MagicOpenBook({
   return (
     <motion.div
       aria-hidden="true"
-      className="absolute bottom-[16%] left-1/2 z-10 h-[210px] w-[390px] -translate-x-1/2 sm:h-[250px] sm:w-[500px]"
+      className="absolute bottom-[11%] left-1/2 z-10 h-[250px] w-[450px] -translate-x-1/2 sm:h-[305px] sm:w-[600px]"
       animate={
         reducedMotion
           ? undefined
@@ -391,15 +413,15 @@ function MagicOpenBook({
     >
       <div className="absolute bottom-2 left-1/2 h-16 w-[78%] -translate-x-1/2 rounded-[50%] bg-plum/18 blur-2xl" />
 
-      <div className="absolute bottom-7 left-1/2 h-[165px] w-[47%] -translate-x-[95%] -rotate-[8deg] rounded-[44%_12%_18%_48%] bg-[linear-gradient(145deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_-12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[195px]" />
+      <div className="absolute bottom-7 left-1/2 h-[198px] w-[47%] -translate-x-[95%] -rotate-[8deg] rounded-[44%_12%_18%_48%] bg-[linear-gradient(145deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_-12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[242px]" />
 
-      <div className="absolute bottom-7 left-1/2 h-[165px] w-[47%] -translate-x-[5%] rotate-[8deg] rounded-[12%_44%_48%_18%] bg-[linear-gradient(215deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[195px]" />
+      <div className="absolute bottom-7 left-1/2 h-[198px] w-[47%] -translate-x-[5%] rotate-[8deg] rounded-[12%_44%_48%_18%] bg-[linear-gradient(215deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[242px]" />
 
-      <div className="absolute bottom-[30px] left-1/2 h-[160px] w-4 -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,#f4b6c8,#8a4d84)] shadow-[0_0_10px_rgba(59,36,107,.22)] sm:h-[190px]" />
+      <div className="absolute bottom-[30px] left-1/2 h-[192px] w-5 -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,#f4b6c8,#8a4d84)] shadow-[0_0_10px_rgba(59,36,107,.22)] sm:h-[235px]" />
 
-      <div className="absolute bottom-5 left-[11%] h-7 w-[78%] -rotate-[2deg] rounded-[0_0_50%_50%] bg-[linear-gradient(180deg,#9a5c3a,#6d3c28)] shadow-[0_12px_25px_rgba(59,36,107,.22)]" />
+      <div className="absolute bottom-5 left-[8%] h-8 w-[84%] -rotate-[2deg] rounded-[0_0_50%_50%] bg-[linear-gradient(180deg,#9a5c3a,#6d3c28)] shadow-[0_12px_25px_rgba(59,36,107,.22)]" />
 
-      <div className="absolute bottom-0 left-[23%] h-12 w-[54%] rounded-[50%] bg-[#6a356a] shadow-[0_10px_18px_rgba(59,36,107,.25)]" />
+      <div className="absolute bottom-0 left-[21%] h-14 w-[58%] rounded-[50%] bg-[#6a356a] shadow-[0_10px_18px_rgba(59,36,107,.25)]" />
 
       <span className="absolute bottom-[48%] left-[20%] h-[2px] w-[23%] -rotate-[7deg] rounded-full bg-[#e6c58e]/70" />
       <span className="absolute bottom-[38%] left-[17%] h-[2px] w-[26%] -rotate-[7deg] rounded-full bg-[#e6c58e]/60" />
@@ -419,7 +441,7 @@ function StoryDots({
   stories: Story[];
 }) {
   return (
-    <div className="absolute bottom-[3%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2">
+    <div className="absolute bottom-[1.5%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2">
       {stories.map((story, index) => (
         <button
           aria-label={`Mostrar ${story.title}`}
