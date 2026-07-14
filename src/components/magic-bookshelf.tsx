@@ -137,7 +137,7 @@ export function MagicBookshelf({
 
           <motion.div
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-[40px] left-1/2 z-10 w-[96vw] max-w-[820px] -translate-x-1/2"
+            className="pointer-events-none absolute bottom-[40px] left-[42%] z-10 w-[96vw] max-w-[760px] -translate-x-1/2 sm:left-[34%]"
             animate={reducedMotion ? undefined : { y: [0, -3, 0] }}
             transition={{
               duration: 7,
