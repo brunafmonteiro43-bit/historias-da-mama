@@ -24,7 +24,7 @@ export default async function Home() {
       <section className="relative isolate overflow-hidden bg-[linear-gradient(118deg,#fff9ed_0%,#fff4fb_43%,#f0ecff_100%)] pb-20 pt-12 [contain:paint] md:pb-24 md:pt-16">
         <MagicalHeroBackdrop />
 
-        <div className={`${shell} relative z-10 grid min-h-[580px] items-center gap-9 md:grid-cols-[minmax(0,50fr)_minmax(390px,50fr)] lg:gap-12`}>
+        <div className={`${shell} relative z-10 grid min-h-[580px] items-center gap-9 xl:grid-cols-[minmax(0,50fr)_minmax(390px,50fr)] xl:gap-12`}>
           <div className="max-w-[590px] pt-2">
             <p className="mb-5 inline-flex rounded-full bg-white/72 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-coral shadow-[0_12px_32px_rgba(59,36,107,.08)] ring-1 ring-white/80 backdrop-blur">
               Biblioteca infantil encantada
