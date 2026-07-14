@@ -54,6 +54,24 @@ textarea {
   overflow: hidden;
 }
 
+.prose-institutional p {
+  margin: 0;
+}
+
+.prose-institutional ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.prose-institutional li {
+  margin-top: .45rem;
+  padding-left: .15rem;
+}
+
+.prose-institutional strong {
+  color: #3b246b;
+}
+
 .brand-float {
   animation: brand-float 5.5s ease-in-out infinite;
   transform-origin: center;

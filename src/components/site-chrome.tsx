@@ -24,10 +24,10 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
             <Link className="rounded-full px-4 py-2 transition hover:bg-cream hover:text-coral" href="/biblioteca">
               Histórias
             </Link>
-            <Link className="rounded-full px-4 py-2 transition hover:bg-cream hover:text-coral" href="/#categorias">
+            <Link className="rounded-full px-4 py-2 transition hover:bg-cream hover:text-coral" href="/categorias">
               Categorias
             </Link>
-            <Link className="rounded-full px-4 py-2 transition hover:bg-cream hover:text-coral" href="/#sobre">
+            <Link className="rounded-full px-4 py-2 transition hover:bg-cream hover:text-coral" href="/sobre">
               Sobre
             </Link>
           </div>
@@ -39,7 +39,10 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
             >
               <Search className="h-5 w-5" />
             </Link>
-            <Link className="hidden rounded-full bg-plum px-5 py-2.5 text-sm font-black text-white shadow-[0_14px_30px_rgba(59,36,107,.18)] transition hover:-translate-y-0.5 hover:bg-coral sm:inline-flex" href="/biblioteca">
+            <Link
+              className="hidden rounded-full bg-plum px-5 py-2.5 text-sm font-black text-white shadow-[0_14px_30px_rgba(59,36,107,.18)] transition hover:-translate-y-0.5 hover:bg-coral sm:inline-flex"
+              href="/biblioteca"
+            >
               Começar a ler
             </Link>
           </div>
@@ -54,20 +57,23 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
               Histórias infantis para imaginar, aprender e se encantar em família.
             </p>
           </div>
-          <nav className="grid gap-3 text-white/78 sm:grid-cols-2">
-            <Link className="transition hover:text-white" href="/biblioteca">
+          <nav className="grid gap-3 text-white/78 sm:grid-cols-2" aria-label="Links do rodapé">
+            <Link className="outline-none transition hover:text-white focus-visible:ring-4 focus-visible:ring-white/30" href="/biblioteca">
               Histórias
             </Link>
-            <Link className="transition hover:text-white" href="/#categorias">
+            <Link className="outline-none transition hover:text-white focus-visible:ring-4 focus-visible:ring-white/30" href="/categorias">
               Categorias
             </Link>
-            <Link className="transition hover:text-white" href="/#sobre">
+            <Link className="outline-none transition hover:text-white focus-visible:ring-4 focus-visible:ring-white/30" href="/sobre">
               Sobre
             </Link>
-            <Link className="transition hover:text-white" href="/privacidade">
+            <Link
+              className="outline-none transition hover:text-white focus-visible:ring-4 focus-visible:ring-white/30"
+              href="/politica-de-privacidade"
+            >
               Política de Privacidade
             </Link>
-            <Link className="transition hover:text-white" href="/termos">
+            <Link className="outline-none transition hover:text-white focus-visible:ring-4 focus-visible:ring-white/30" href="/termos-de-uso">
               Termos de Uso
             </Link>
           </nav>
