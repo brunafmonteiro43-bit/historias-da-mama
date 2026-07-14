@@ -1,8 +1,9 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 
 import type { Story } from '@/types';
@@ -11,10 +12,10 @@ type MagicBookshelfProps = {
   stories: Story[];
 };
 
-const MAX_BOOKS = 12;
-const BOOKS_PER_ROW = 4;
+const MAX_STORIES = 8;
+const ROTATION_INTERVAL = 5200;
 
-function selectBookshelfStories(stories: Story[]) {
+function selectHeroStories(stories: Story[]) {
   const publishedStories = stories.filter(
     (story) => story.status === 'published',
   );
@@ -36,7 +37,7 @@ function selectBookshelfStories(stories: Story[]) {
         new Date(firstStory.createdAt).getTime(),
     );
 
-  return [...featuredStories, ...recentStories].slice(0, MAX_BOOKS);
+  return [...featuredStories, ...recentStories].slice(0, MAX_STORIES);
 }
 
 function openWithSpace(event: KeyboardEvent<HTMLAnchorElement>) {
@@ -50,35 +51,76 @@ export function MagicBookshelf({
   stories,
 }: MagicBookshelfProps) {
   const reducedMotion = useReducedMotion();
-  const bookshelfStories = selectBookshelfStories(stories);
-
-  const rows = Array.from({ length: 3 }, (_, rowIndex) =>
-    bookshelfStories.slice(
-      rowIndex * BOOKS_PER_ROW,
-      rowIndex * BOOKS_PER_ROW + BOOKS_PER_ROW,
-    ),
+  const heroStories = useMemo(
+    () => selectHeroStories(stories),
+    [stories],
   );
 
-  if (bookshelfStories.length === 0) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (reducedMotion || heroStories.length <= 1) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setActiveIndex((currentIndex) =>
+        currentIndex + 1 >= heroStories.length
+          ? 0
+          : currentIndex + 1,
+      );
+    }, ROTATION_INTERVAL);
+
+    return () => window.clearInterval(interval);
+  }, [heroStories.length, reducedMotion]);
+
+  useEffect(() => {
+    if (activeIndex >= heroStories.length) {
+      setActiveIndex(0);
+    }
+  }, [activeIndex, heroStories.length]);
+
+  if (heroStories.length === 0) {
     return (
-      <div className="relative mx-auto grid min-h-[460px] w-full max-w-[650px] place-items-center overflow-hidden rounded-[3rem] bg-gradient-to-br from-[#fff8ef] via-[#fff4f8] to-[#eee7ff] px-10 text-center shadow-[0_30px_90px_rgba(59,36,107,.16)]">
-        <div>
+      <div className="relative mx-auto grid min-h-[430px] w-full max-w-[650px] place-items-center overflow-hidden rounded-[3rem] bg-gradient-to-br from-[#fff8ef] via-[#fff4f8] to-[#eee7ff] px-10 text-center shadow-[0_30px_90px_rgba(59,36,107,.14)]">
+        <div className="relative z-10 max-w-sm">
+          <div className="mx-auto mb-5 grid h-24 w-24 place-items-center rounded-full bg-white/75 text-5xl shadow-[0_18px_40px_rgba(59,36,107,.12)]">
+            📖
+          </div>
+
           <p className="font-display text-3xl font-black text-plum">
             Novas histórias estão chegando.
           </p>
 
           <p className="mt-3 text-sm font-semibold text-slate-600">
-            Em breve esta estante estará cheia de aventuras.
+            Em breve, uma nova aventura vai surgir deste livro mágico.
           </p>
         </div>
+
+        <MagicParticles reducedMotion={Boolean(reducedMotion)} />
       </div>
     );
   }
 
+  const activeStory = heroStories[activeIndex];
+  const floatingStories = heroStories
+    .filter((_, index) => index !== activeIndex)
+    .slice(0, 4);
+
+  function selectStory(story: Story) {
+    const nextIndex = heroStories.findIndex(
+      (item) => item.slug === story.slug,
+    );
+
+    if (nextIndex >= 0) {
+      setActiveIndex(nextIndex);
+    }
+  }
+
   return (
     <motion.section
-      aria-label="Estante mágica de histórias"
-      className="relative mx-auto w-full max-w-[700px] md:justify-self-end"
+      aria-label="Portal mágico de histórias"
+      className="relative mx-auto w-full max-w-[720px] md:justify-self-end"
       initial={
         reducedMotion
           ? { opacity: 1 }
@@ -89,196 +131,120 @@ export function MagicBookshelf({
     >
       <div
         aria-hidden="true"
-        className="absolute -inset-12 rounded-full bg-[radial-gradient(circle_at_50%_45%,rgba(255,231,163,.46),rgba(249,196,210,.32)_38%,rgba(183,155,239,.24)_64%,transparent_78%)] blur-xl"
+        className="absolute -inset-12 rounded-full bg-[radial-gradient(circle_at_50%_45%,rgba(255,231,163,.48),rgba(249,196,210,.31)_38%,rgba(183,155,239,.25)_64%,transparent_78%)] blur-xl"
       />
 
       <div
         aria-hidden="true"
-        className="absolute -bottom-10 left-[10%] h-24 w-[80%] rounded-full bg-plum/20 blur-3xl"
+        className="absolute -bottom-10 left-[10%] h-24 w-[80%] rounded-full bg-plum/18 blur-3xl"
       />
 
-      <BookshelfLights reducedMotion={Boolean(reducedMotion)} />
+      <div className="relative min-h-[600px] overflow-visible px-2 pb-4 pt-6 sm:px-6 md:min-h-[650px]">
+        <MagicParticles reducedMotion={Boolean(reducedMotion)} />
 
-      {/* ESTANTE DESKTOP */}
-      <div className="relative hidden min-h-[710px] px-3 pb-4 pt-2 md:block">
-        <div className="absolute inset-x-0 bottom-0 top-0 overflow-hidden rounded-t-[47%] rounded-b-[3rem] bg-[linear-gradient(105deg,#5f321e_0%,#b76f3e_12%,#7a4024_25%,#d09155_40%,#7b4024_56%,#bf7944_73%,#5b2f1c_89%,#9b5b34_100%)] p-[21px] shadow-[0_35px_90px_rgba(59,36,107,.26),inset_0_0_0_3px_rgba(255,231,163,.28)]">
-          <div className="relative h-full overflow-hidden rounded-t-[46%] rounded-b-[2.2rem] bg-[radial-gradient(circle_at_50%_12%,#633820_0%,#3b2118_42%,#23130f_100%)] shadow-[inset_0_0_70px_rgba(0,0,0,.65)]">
-            <div className="absolute inset-x-[10%] top-[4%] h-36 rounded-full bg-[#ffe7a3]/15 blur-3xl" />
+        <div className="relative mx-auto flex min-h-[590px] max-w-[650px] items-center justify-center md:min-h-[630px]">
+          <div
+            aria-hidden="true"
+            className="absolute left-1/2 top-1/2 h-[430px] w-[430px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.94)_0%,rgba(255,244,209,.78)_34%,rgba(249,196,210,.42)_58%,rgba(183,155,239,.18)_74%,transparent_76%)] blur-sm sm:h-[500px] sm:w-[500px]"
+          />
 
-            <div className="pointer-events-none absolute inset-0 opacity-[.16] [background-image:repeating-linear-gradient(92deg,transparent_0,transparent_27px,rgba(255,255,255,.14)_28px,transparent_30px)]" />
+          <div
+            aria-hidden="true"
+            className="absolute left-1/2 top-[19%] h-48 w-[70%] -translate-x-1/2 rounded-[50%] bg-white/40 blur-3xl"
+          />
 
-            <div
-              aria-hidden="true"
-              className="absolute left-[12%] right-[12%] top-[10%] z-30 h-[2px] rotate-[-1deg] bg-[#a76b38]/80"
-            />
+          <MagicOpenBook reducedMotion={Boolean(reducedMotion)} />
 
-            <div className="relative z-20 flex h-full flex-col justify-end px-7 pb-7 pt-36">
-              {rows.map((rowStories, rowIndex) => (
-                <div
-                  className="relative flex flex-1 flex-col justify-end"
-                  key={rowIndex}
-                >
-                  <div
-                    className={`flex min-h-[154px] items-end justify-center px-2 ${
-                      rowStories.length <= 2
-                        ? 'gap-16'
-                        : rowStories.length === 3
-                          ? 'gap-8'
-                          : 'gap-5 lg:gap-6'
-                    }`}
-                  >
-                    {rowStories.map((story, index) => (
-                      <MagicBook
-                        index={rowIndex * BOOKS_PER_ROW + index}
-                        key={story.slug}
-                        reducedMotion={Boolean(reducedMotion)}
-                        story={story}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="relative z-10 mt-2 h-6 rounded-[999px] bg-[linear-gradient(180deg,#e2aa70_0%,#a6633b_34%,#63351f_100%)] shadow-[inset_0_2px_0_rgba(255,255,255,.38),0_10px_20px_rgba(0,0,0,.48)]">
-                    <div className="absolute inset-x-4 top-1 h-[3px] rounded-full bg-white/24" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <BookshelfFlowers reducedMotion={Boolean(reducedMotion)} />
-      </div>
-
-      {/* ESTANTE MOBILE */}
-      <div className="relative -mx-4 overflow-x-auto px-4 pb-8 pt-9 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
-        <div className="relative min-w-max rounded-[2.2rem] border-[11px] border-[#995934] bg-[linear-gradient(180deg,#4d2b1e,#24130e)] px-5 pb-4 pt-8 shadow-[0_25px_55px_rgba(59,36,107,.22)]">
-          <div className="flex items-end gap-5">
-            {bookshelfStories.slice(0, 8).map((story, index) => (
-              <MagicBook
-                index={index}
-                key={story.slug}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeStory.slug}
+              className="absolute left-1/2 top-[14%] z-30 -translate-x-1/2"
+              initial={
+                reducedMotion
+                  ? { opacity: 1 }
+                  : { opacity: 0, y: 18, scale: 0.92 }
+              }
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={
+                reducedMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, y: -12, scale: 0.95 }
+              }
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+            >
+              <FeaturedStoryCard
                 reducedMotion={Boolean(reducedMotion)}
-                story={story}
+                story={activeStory}
               />
-            ))}
-          </div>
+            </motion.div>
+          </AnimatePresence>
 
-          <div className="mt-3 h-5 min-w-[760px] rounded-full bg-[linear-gradient(180deg,#dba168,#8f5030_58%,#5b301d)] shadow-[0_9px_20px_rgba(0,0,0,.38)]" />
+          <FloatingStoryCards
+            activeStory={activeStory}
+            reducedMotion={Boolean(reducedMotion)}
+            stories={floatingStories}
+            onSelect={selectStory}
+          />
+
+          <StoryDots
+            activeIndex={activeIndex}
+            stories={heroStories}
+            onSelect={setActiveIndex}
+          />
+
+          <div className="absolute bottom-[8%] left-1/2 z-30 -translate-x-1/2">
+            <Link
+              className="inline-flex items-center gap-2 rounded-full bg-plum px-6 py-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(59,36,107,.24)] transition hover:-translate-y-1 hover:shadow-[0_20px_38px_rgba(59,36,107,.30)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-coral/45"
+              href={`/historias/${activeStory.slug}`}
+              onKeyDown={openWithSpace}
+            >
+              <span aria-hidden="true">📖</span>
+              Ler esta história
+            </Link>
+          </div>
         </div>
       </div>
     </motion.section>
   );
 }
 
-function MagicBook({
-  index,
+function FeaturedStoryCard({
   reducedMotion,
   story,
 }: {
-  index: number;
   reducedMotion: boolean;
   story: Story;
 }) {
-  const rotations = [
-    '-rotate-1',
-    'rotate-1',
-    'rotate-0',
-    'rotate-1',
-    'rotate-0',
-    '-rotate-1',
-    'rotate-1',
-    'rotate-0',
-    '-rotate-1',
-    'rotate-1',
-    'rotate-0',
-    '-rotate-1',
-  ];
-
-  const heights = [
-    'h-[156px]',
-    'h-[164px]',
-    'h-[159px]',
-    'h-[168px]',
-    'h-[162px]',
-    'h-[167px]',
-    'h-[158px]',
-    'h-[164px]',
-    'h-[168px]',
-    'h-[160px]',
-    'h-[165px]',
-    'h-[162px]',
-  ];
-
   return (
     <motion.div
-      className="group relative shrink-0"
-      initial={
-        reducedMotion
-          ? { opacity: 1 }
-          : { opacity: 0, y: 16 }
-      }
       animate={
         reducedMotion
-          ? { opacity: 1 }
-          : {
-              opacity: 1,
-              y: [0, -4, 0],
-            }
-      }
-      transition={
-        reducedMotion
-          ? { duration: 0.2 }
-          : {
-              opacity: {
-                delay: 0.08 + index * 0.045,
-                duration: 0.35,
-              },
-              y: {
-                delay: index * 0.1,
-                duration: 5.1 + (index % 4) * 0.4,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              },
-            }
-      }
-      whileHover={
-        reducedMotion
           ? undefined
           : {
-              y: -12,
-              scale: 1.07,
-              rotate: index % 2 === 0 ? -1 : 1,
-              zIndex: 50,
+              y: [0, -8, 0],
+              rotate: [-0.8, 0.8, -0.8],
             }
       }
-      whileFocus={
-        reducedMotion
-          ? undefined
-          : {
-              y: -12,
-              scale: 1.07,
-              zIndex: 50,
-            }
-      }
+      transition={{
+        duration: 6,
+        repeat: reducedMotion ? 0 : Infinity,
+        ease: 'easeInOut',
+      }}
+      className="group relative"
     >
       <Link
-        aria-label={`Abrir história ${story.title}, ${story.ageRange}`}
-        className={`relative block w-[98px] ${heights[index % heights.length]} ${rotations[index % rotations.length]} overflow-hidden rounded-md bg-white shadow-[0_14px_24px_rgba(0,0,0,.48)] outline-none ring-1 ring-white/40 transition focus-visible:ring-4 focus-visible:ring-coral/60 lg:w-[108px]`}
+        aria-label={`Abrir história ${story.title}`}
+        className="relative block h-[230px] w-[150px] overflow-hidden rounded-[1.35rem] bg-white shadow-[0_28px_50px_rgba(59,36,107,.28)] ring-[10px] ring-white/72 transition duration-300 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_34px_60px_rgba(59,36,107,.34)] focus-visible:outline-none focus-visible:ring-[10px] focus-visible:ring-coral/55 sm:h-[270px] sm:w-[176px]"
         href={`/historias/${story.slug}`}
         onKeyDown={openWithSpace}
       >
-        <span
-          aria-hidden="true"
-          className="absolute inset-y-0 left-0 z-30 w-[7px] bg-gradient-to-r from-black/32 via-white/17 to-transparent"
-        />
-
         {story.coverUrl ? (
           <Image
             alt={`Capa de ${story.title}`}
             className="h-full w-full object-cover"
             fill
-            loading="lazy"
-            sizes="(min-width: 1024px) 108px, 98px"
+            priority
+            sizes="(min-width: 640px) 176px, 150px"
             src={story.coverUrl}
           />
         ) : (
@@ -287,25 +253,187 @@ function MagicBook({
 
         <span
           aria-hidden="true"
-          className="absolute inset-0 z-20 bg-gradient-to-t from-black/22 via-transparent to-white/18"
+          className="absolute inset-y-0 left-0 z-20 w-3 bg-gradient-to-r from-black/24 via-white/15 to-transparent"
         />
 
         <span
           aria-hidden="true"
-          className="absolute inset-0 z-40 opacity-0 shadow-[inset_0_0_30px_rgba(255,231,163,.95),0_0_26px_rgba(255,201,93,.68)] transition duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
+          className="absolute inset-0 z-20 bg-gradient-to-t from-plum/30 via-transparent to-white/18"
         />
+
+        <span className="absolute inset-x-3 bottom-3 z-30 rounded-2xl bg-white/92 px-3 py-2 text-center opacity-0 shadow-lg backdrop-blur transition duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
+          <span className="line-clamp-2 block text-sm font-black leading-5 text-plum">
+            {story.title}
+          </span>
+          <span className="mt-1 block text-xs font-bold text-coral">
+            {story.ageRange}
+          </span>
+        </span>
       </Link>
-
-      <div className="pointer-events-none absolute -top-[82px] left-1/2 z-[60] w-52 -translate-x-1/2 translate-y-2 rounded-2xl bg-white/96 px-4 py-3 text-center opacity-0 shadow-[0_18px_42px_rgba(25,15,55,.26)] ring-1 ring-lilac/25 backdrop-blur transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
-        <p className="line-clamp-2 text-sm font-black leading-5 text-plum">
-          {story.title}
-        </p>
-
-        <p className="mt-1 text-xs font-bold text-coral">
-          {story.ageRange}
-        </p>
-      </div>
     </motion.div>
+  );
+}
+
+function FloatingStoryCards({
+  activeStory,
+  onSelect,
+  reducedMotion,
+  stories,
+}: {
+  activeStory: Story;
+  onSelect: (story: Story) => void;
+  reducedMotion: boolean;
+  stories: Story[];
+}) {
+  const positions = [
+    'left-[1%] top-[22%] sm:left-[5%]',
+    'right-[1%] top-[22%] sm:right-[5%]',
+    'bottom-[18%] left-[7%] sm:left-[11%]',
+    'bottom-[18%] right-[7%] sm:right-[11%]',
+  ];
+
+  return (
+    <>
+      {stories.map((story, index) => (
+        <motion.button
+          aria-label={`Destacar história ${story.title}`}
+          className={`absolute z-20 ${positions[index]} group h-[118px] w-[78px] overflow-hidden rounded-[1rem] bg-white p-0 shadow-[0_18px_36px_rgba(59,36,107,.18)] ring-[6px] ring-white/65 transition focus-visible:outline-none focus-visible:ring-coral/50 sm:h-[142px] sm:w-[92px]`}
+          key={`${activeStory.slug}-${story.slug}`}
+          onClick={() => onSelect(story)}
+          type="button"
+          initial={
+            reducedMotion
+              ? { opacity: 1 }
+              : { opacity: 0, scale: 0.86, y: 12 }
+          }
+          animate={
+            reducedMotion
+              ? { opacity: 1 }
+              : {
+                  opacity: 1,
+                  scale: 1,
+                  y: [0, index % 2 === 0 ? -6 : 6, 0],
+                  rotate: [
+                    index % 2 === 0 ? -2 : 2,
+                    index % 2 === 0 ? 2 : -2,
+                    index % 2 === 0 ? -2 : 2,
+                  ],
+                }
+          }
+          transition={{
+            opacity: { duration: 0.35, delay: index * 0.08 },
+            scale: { duration: 0.35, delay: index * 0.08 },
+            y: {
+              duration: 5.8 + index * 0.5,
+              repeat: reducedMotion ? 0 : Infinity,
+              ease: 'easeInOut',
+            },
+            rotate: {
+              duration: 6.4 + index * 0.4,
+              repeat: reducedMotion ? 0 : Infinity,
+              ease: 'easeInOut',
+            },
+          }}
+          whileHover={
+            reducedMotion
+              ? undefined
+              : { y: -10, scale: 1.08, zIndex: 40 }
+          }
+        >
+          {story.coverUrl ? (
+            <Image
+              alt={`Capa de ${story.title}`}
+              className="h-full w-full object-cover"
+              fill
+              loading="lazy"
+              sizes="(min-width: 640px) 92px, 78px"
+              src={story.coverUrl}
+            />
+          ) : (
+            <BookPlaceholder story={story} />
+          )}
+
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-t from-plum/26 via-transparent to-white/14"
+          />
+
+          <span className="pointer-events-none absolute inset-x-1 bottom-1 translate-y-2 rounded-lg bg-white/94 px-1.5 py-1 text-[9px] font-black leading-3 text-plum opacity-0 shadow-sm transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+            {story.title}
+          </span>
+        </motion.button>
+      ))}
+    </>
+  );
+}
+
+function MagicOpenBook({
+  reducedMotion,
+}: {
+  reducedMotion: boolean;
+}) {
+  return (
+    <motion.div
+      aria-hidden="true"
+      className="absolute bottom-[16%] left-1/2 z-10 h-[210px] w-[390px] -translate-x-1/2 sm:h-[250px] sm:w-[500px]"
+      animate={
+        reducedMotion
+          ? undefined
+          : {
+              y: [0, -4, 0],
+            }
+      }
+      transition={{
+        duration: 6.8,
+        repeat: reducedMotion ? 0 : Infinity,
+        ease: 'easeInOut',
+      }}
+    >
+      <div className="absolute bottom-2 left-1/2 h-16 w-[78%] -translate-x-1/2 rounded-[50%] bg-plum/18 blur-2xl" />
+
+      <div className="absolute bottom-7 left-1/2 h-[165px] w-[47%] -translate-x-[95%] -rotate-[8deg] rounded-[44%_12%_18%_48%] bg-[linear-gradient(145deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_-12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[195px]" />
+
+      <div className="absolute bottom-7 left-1/2 h-[165px] w-[47%] -translate-x-[5%] rotate-[8deg] rounded-[12%_44%_48%_18%] bg-[linear-gradient(215deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[195px]" />
+
+      <div className="absolute bottom-[30px] left-1/2 h-[160px] w-4 -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,#f4b6c8,#8a4d84)] shadow-[0_0_10px_rgba(59,36,107,.22)] sm:h-[190px]" />
+
+      <div className="absolute bottom-5 left-[11%] h-7 w-[78%] -rotate-[2deg] rounded-[0_0_50%_50%] bg-[linear-gradient(180deg,#9a5c3a,#6d3c28)] shadow-[0_12px_25px_rgba(59,36,107,.22)]" />
+
+      <div className="absolute bottom-0 left-[23%] h-12 w-[54%] rounded-[50%] bg-[#6a356a] shadow-[0_10px_18px_rgba(59,36,107,.25)]" />
+
+      <span className="absolute bottom-[48%] left-[20%] h-[2px] w-[23%] -rotate-[7deg] rounded-full bg-[#e6c58e]/70" />
+      <span className="absolute bottom-[38%] left-[17%] h-[2px] w-[26%] -rotate-[7deg] rounded-full bg-[#e6c58e]/60" />
+      <span className="absolute bottom-[48%] right-[20%] h-[2px] w-[23%] rotate-[7deg] rounded-full bg-[#e6c58e]/70" />
+      <span className="absolute bottom-[38%] right-[17%] h-[2px] w-[26%] rotate-[7deg] rounded-full bg-[#e6c58e]/60" />
+    </motion.div>
+  );
+}
+
+function StoryDots({
+  activeIndex,
+  onSelect,
+  stories,
+}: {
+  activeIndex: number;
+  onSelect: (index: number) => void;
+  stories: Story[];
+}) {
+  return (
+    <div className="absolute bottom-[3%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2">
+      {stories.map((story, index) => (
+        <button
+          aria-label={`Mostrar ${story.title}`}
+          className={`h-2.5 rounded-full transition-all ${
+            index === activeIndex
+              ? 'w-8 bg-plum'
+              : 'w-2.5 bg-plum/25 hover:bg-plum/45'
+          }`}
+          key={story.slug}
+          onClick={() => onSelect(index)}
+          type="button"
+        />
+      ))}
+    </div>
   );
 }
 
@@ -319,87 +447,87 @@ function BookPlaceholder({ story }: { story: Story }) {
   );
 }
 
-function BookshelfLights({
+function MagicParticles({
   reducedMotion,
 }: {
   reducedMotion: boolean;
 }) {
-  const lights = [
-    ['left-[16%]', 'top-[9%]', 0],
-    ['left-[27%]', 'top-[6%]', 0.5],
-    ['left-[39%]', 'top-[8%]', 1],
-    ['left-[51%]', 'top-[5%]', 1.5],
-    ['right-[31%]', 'top-[8%]', 0.8],
-    ['right-[18%]', 'top-[11%]', 1.3],
-    ['left-[10%]', 'top-[31%]', 0.4],
-    ['right-[8%]', 'top-[38%]', 1.7],
-    ['left-[8%]', 'bottom-[27%]', 1.1],
-    ['right-[12%]', 'bottom-[22%]', 0.7],
+  const particles = [
+    ['left-[12%]', 'top-[18%]', 'text-sun', 0],
+    ['right-[14%]', 'top-[16%]', 'text-white', 0.7],
+    ['left-[8%]', 'bottom-[28%]', 'text-coral', 1.4],
+    ['right-[9%]', 'bottom-[24%]', 'text-aqua', 0.4],
+    ['left-[30%]', 'top-[10%]', 'text-white', 1.1],
+    ['right-[31%]', 'top-[8%]', 'text-sun', 1.8],
   ] as const;
 
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-40"
+      className="pointer-events-none absolute inset-0 z-10"
     >
-      {lights.map(([x, y, delay], index) => (
+      {particles.map(([x, y, color, delay], index) => (
         <motion.span
           animate={
             reducedMotion
-              ? { opacity: 0.6 }
+              ? { opacity: 0.55 }
               : {
-                  opacity: [0.25, 1, 0.35],
-                  scale: [0.85, 1.45, 0.9],
+                  opacity: [0.2, 1, 0.3],
+                  scale: [0.8, 1.35, 0.85],
+                  y: [0, -8, 0],
                 }
           }
-          className={`absolute ${x} ${y} h-2.5 w-2.5 rounded-full bg-[#ffe39a] shadow-[0_0_8px_#ffe39a,0_0_20px_#ffca62]`}
+          className={`absolute ${x} ${y} ${color} text-xl drop-shadow-[0_0_12px_currentColor]`}
           key={index}
           transition={{
             delay,
-            duration: 2.4 + index * 0.17,
+            duration: 3.1 + index * 0.35,
             repeat: reducedMotion ? 0 : Infinity,
             ease: 'easeInOut',
           }}
-        />
+        >
+          ✦
+        </motion.span>
       ))}
-    </div>
-  );
-}
 
-function BookshelfFlowers({
-  reducedMotion,
-}: {
-  reducedMotion: boolean;
-}) {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-50"
-    >
-      <motion.div
+      <motion.span
         animate={
           reducedMotion
             ? undefined
-            : { rotate: [-1, 1.5, -1] }
+            : {
+                x: [0, 18, 0],
+                y: [0, -16, 0],
+                rotate: [-8, 10, -8],
+              }
         }
-        className="absolute left-[1%] top-[-3%] h-24 w-[98%]"
+        className="absolute right-[9%] top-[18%] h-12 w-12"
         transition={{
           duration: 7,
-          repeat: Infinity,
+          repeat: reducedMotion ? 0 : Infinity,
           ease: 'easeInOut',
         }}
       >
-        <span className="absolute left-[2%] top-7 h-5 w-12 rotate-[-26deg] rounded-[100%_0] bg-[#78aa68]" />
-        <span className="absolute left-[13%] top-2 h-5 w-11 rotate-[20deg] rounded-[100%_0] bg-[#9bc67d]" />
-        <span className="absolute left-[27%] top-8 h-5 w-11 rotate-[-20deg] rounded-[100%_0] bg-[#80b570]" />
-        <span className="absolute right-[27%] top-5 h-5 w-11 rotate-[16deg] rounded-[100%_0] bg-[#9dc982]" />
-        <span className="absolute right-[13%] top-8 h-5 w-12 rotate-[-16deg] rounded-[100%_0] bg-[#77aa67]" />
-        <span className="absolute right-[1%] top-2 h-5 w-11 rotate-[22deg] rounded-[100%_0] bg-[#a8cb7e]" />
-      </motion.div>
+        <span className="absolute left-0 top-2 h-8 w-6 rotate-[-14deg] rounded-full rounded-br-sm bg-coral/78" />
+        <span className="absolute right-0 top-0 h-9 w-6 rotate-[14deg] rounded-full rounded-bl-sm bg-rose/95" />
+        <span className="absolute left-[23px] top-2 h-9 w-1 rounded-full bg-plum/65" />
+      </motion.span>
 
-      <span className="absolute left-[16%] top-[1%] h-4 w-4 rounded-full bg-coral shadow-[10px_1px_0_#ff9bb6,-7px_5px_0_#ffd0de,1px_10px_0_#f36f91]" />
-
-      <span className="absolute right-[18%] top-[2%] h-4 w-4 rounded-full bg-[#ffd69a] shadow-[10px_2px_0_#f6a8bd,-7px_5px_0_#f9c4d2,1px_10px_0_#ffe7a3]" />
+      <motion.span
+        animate={
+          reducedMotion
+            ? undefined
+            : {
+                y: [0, -7, 0],
+                rotate: [-7, 5, -7],
+              }
+        }
+        className="absolute bottom-[12%] left-[8%] h-9 w-20 rounded-[100%_0] bg-[#8dc6ae]/55"
+        transition={{
+          duration: 7.8,
+          repeat: reducedMotion ? 0 : Infinity,
+          ease: 'easeInOut',
+        }}
+      />
 
       <motion.span
         animate={
@@ -407,55 +535,16 @@ function BookshelfFlowers({
             ? undefined
             : {
                 y: [0, -5, 0],
-                rotate: [-7, 4, -7],
+                rotate: [7, -5, 7],
               }
         }
-        className="absolute bottom-[1%] left-[-1%] h-10 w-20 rounded-[100%_0] bg-[#78aa68]/90"
+        className="absolute bottom-[9%] right-[7%] h-8 w-16 rounded-[0_100%] bg-[#9bc983]/60"
         transition={{
-          duration: 7.5,
-          repeat: Infinity,
+          duration: 8.4,
+          repeat: reducedMotion ? 0 : Infinity,
           ease: 'easeInOut',
         }}
       />
-
-      <motion.span
-        animate={
-          reducedMotion
-            ? undefined
-            : {
-                y: [0, -4, 0],
-                rotate: [7, -4, 7],
-              }
-        }
-        className="absolute bottom-[1%] right-[-1%] h-10 w-20 rounded-[0_100%] bg-[#94c37f]/90"
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      <motion.span
-        animate={
-          reducedMotion
-            ? undefined
-            : {
-                x: [0, 11, 0],
-                y: [0, -11, 0],
-                rotate: [-5, 8, -5],
-              }
-        }
-        className="absolute right-[4%] top-[12%] h-12 w-12"
-        transition={{
-          duration: 6.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      >
-        <span className="absolute left-0 top-2 h-8 w-6 rotate-[-14deg] rounded-full rounded-br-sm bg-coral/80" />
-        <span className="absolute right-0 top-0 h-9 w-6 rotate-[14deg] rounded-full rounded-bl-sm bg-rose/95" />
-        <span className="absolute left-[23px] top-2 h-9 w-1 rounded-full bg-plum/65" />
-      </motion.span>
     </div>
   );
 }
