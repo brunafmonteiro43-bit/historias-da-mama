@@ -135,26 +135,29 @@ export function MagicBookshelf({
             className="absolute left-1/2 top-[43%] h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.96)_0%,rgba(255,246,210,.82)_30%,rgba(249,196,210,.40)_58%,rgba(183,155,239,.19)_74%,transparent_77%)] blur-sm sm:h-[560px] sm:w-[560px]"
           />
 
-          <motion.div
+          <div
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-[40px] left-[42%] z-10 w-[96vw] max-w-[760px] -translate-x-1/2 sm:left-[34%]"
-            animate={reducedMotion ? undefined : { y: [0, -3, 0] }}
-            transition={{
-              duration: 7,
-              repeat: reducedMotion ? 0 : Infinity,
-              ease: 'easeInOut',
-            }}
+            className="pointer-events-none absolute bottom-[40px] left-1/2 z-10 w-[96vw] max-w-[780px] -translate-x-1/2"
           >
-            <Image
-              alt=""
-              className="h-auto w-full object-contain"
-              height={1024}
-              priority
-              sizes="(min-width: 640px) 820px, 96vw"
-              src="/illustrations/magic-book.png"
-              width={1536}
-            />
-          </motion.div>
+            <motion.div
+              animate={reducedMotion ? undefined : { y: [0, -3, 0] }}
+              transition={{
+                duration: 7,
+                repeat: reducedMotion ? 0 : Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <Image
+                alt=""
+                className="h-auto w-full object-contain"
+                height={1024}
+                priority
+                sizes="(min-width: 640px) 780px, 96vw"
+                src="/illustrations/magic-book.png"
+                width={1536}
+              />
+            </motion.div>
+          </div>
 
 
 
@@ -167,29 +170,30 @@ export function MagicBookshelf({
             />
           ) : null}
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeStory.slug}
-              className="absolute left-1/2 top-[86px] z-40 -translate-x-1/2 sm:top-[72px]"
-              initial={
-                reducedMotion
-                  ? { opacity: 1 }
-                  : { opacity: 0, y: 18, scale: 0.94 }
-              }
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={
-                reducedMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, y: -12, scale: 0.96 }
-              }
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-            >
-              <FeaturedStoryCover
-                reducedMotion={Boolean(reducedMotion)}
-                story={activeStory}
-              />
-            </motion.div>
-          </AnimatePresence>
+          <div className="absolute left-1/2 top-[86px] z-40 -translate-x-1/2 sm:top-[72px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeStory.slug}
+                initial={
+                  reducedMotion
+                    ? { opacity: 1 }
+                    : { opacity: 0, y: 18, scale: 0.94 }
+                }
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={
+                  reducedMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, y: -12, scale: 0.96 }
+                }
+                transition={{ duration: 0.45, ease: 'easeOut' }}
+              >
+                <FeaturedStoryCover
+                  reducedMotion={Boolean(reducedMotion)}
+                  story={activeStory}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           {heroStories.length > 1 ? (
             <FloatingSideCover
@@ -301,8 +305,8 @@ function FloatingSideCover({
 }) {
   const position =
     side === 'left'
-      ? 'left-1/2 top-[238px] -translate-x-[205px] sm:top-[225px] sm:-translate-x-[292px]'
-      : 'left-1/2 top-[238px] translate-x-[108px] sm:top-[225px] sm:translate-x-[174px]';
+      ? 'left-1/2 top-[235px] -translate-x-[220px] sm:top-[225px] sm:-translate-x-[300px]'
+      : 'left-1/2 top-[235px] translate-x-[128px] sm:top-[225px] sm:translate-x-[186px]';
 
   const rotation: number[] =
     side === 'left' ? [-7, -5.5, -7] : [7, 5.5, 7];
@@ -311,53 +315,54 @@ function FloatingSideCover({
     side === 'left' ? [0, -5, 0] : [0, 5, 0];
 
   return (
-    <motion.button
-      aria-label={`Destacar história ${story.title}`}
-      className={`absolute ${position} z-30 h-[140px] w-[92px] overflow-hidden rounded-[1.15rem] bg-white p-0 shadow-[0_20px_42px_rgba(59,36,107,.22)] ring-[7px] ring-white transition focus-visible:outline-none focus-visible:ring-[#f36f91]/55 sm:h-[176px] sm:w-[114px]`}
-      onClick={onSelect}
-      type="button"
-      initial={
-        reducedMotion
-          ? { opacity: 1 }
-          : { opacity: 0, scale: 0.9, y: 12 }
-      }
-      animate={
-        reducedMotion
-          ? {
-              opacity: 1,
-              rotate: side === 'left' ? -7 : 7,
-            }
-          : {
-              opacity: 1,
-              scale: 1,
-              y: floatingY,
-              rotate: rotation,
-            }
-      }
-      transition={{
-        opacity: { duration: 0.35 },
-        scale: { duration: 0.35 },
-        y: {
-          duration: 6,
-          repeat: reducedMotion ? 0 : Infinity,
-          ease: 'easeInOut',
-        },
-        rotate: {
-          duration: 6.5,
-          repeat: reducedMotion ? 0 : Infinity,
-          ease: 'easeInOut',
-        },
-      }}
-      whileHover={
-        reducedMotion
-          ? undefined
-          : {
-              y: -9,
-              scale: 1.05,
-              zIndex: 45,
-            }
-      }
-    >
+    <div className={`absolute ${position} z-30`}>
+      <motion.button
+        aria-label={`Destacar história ${story.title}`}
+        className="relative block h-[140px] w-[92px] overflow-hidden rounded-[1.15rem] bg-white p-0 shadow-[0_20px_42px_rgba(59,36,107,.22)] ring-[7px] ring-white transition focus-visible:outline-none focus-visible:ring-[#f36f91]/55 sm:h-[176px] sm:w-[114px]"
+        onClick={onSelect}
+        type="button"
+        initial={
+          reducedMotion
+            ? { opacity: 1 }
+            : { opacity: 0, scale: 0.9, y: 12 }
+        }
+        animate={
+          reducedMotion
+            ? {
+                opacity: 1,
+                rotate: side === 'left' ? -7 : 7,
+              }
+            : {
+                opacity: 1,
+                scale: 1,
+                y: floatingY,
+                rotate: rotation,
+              }
+        }
+        transition={{
+          opacity: { duration: 0.35 },
+          scale: { duration: 0.35 },
+          y: {
+            duration: 6,
+            repeat: reducedMotion ? 0 : Infinity,
+            ease: 'easeInOut',
+          },
+          rotate: {
+            duration: 6.5,
+            repeat: reducedMotion ? 0 : Infinity,
+            ease: 'easeInOut',
+          },
+        }}
+        whileHover={
+          reducedMotion
+            ? undefined
+            : {
+                y: -9,
+                scale: 1.05,
+                zIndex: 45,
+              }
+        }
+      >
       {story.coverUrl ? (
         <Image
           alt={`Capa de ${story.title}`}
@@ -371,11 +376,12 @@ function FloatingSideCover({
         <BookPlaceholder story={story} />
       )}
 
-      <span
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-[#3b246b]/22 via-transparent to-white/12"
-      />
-    </motion.button>
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-[#3b246b]/22 via-transparent to-white/12"
+        />
+      </motion.button>
+    </div>
   );
 }
 
