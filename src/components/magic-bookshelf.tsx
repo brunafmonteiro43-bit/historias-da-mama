@@ -1,92 +1,43 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
-import { BookOpen } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+
 import type { Story } from '@/types';
 
 type MagicBookshelfProps = {
   stories: Story[];
 };
 
-type SideCoverKind = 'previous' | 'next';
+const MAX_STORIES = 8;
+const ROTATION_INTERVAL = 5500;
 
-type SideCoverLayout = {
-  baseRotate: number;
-  className: string;
-  hoverRotate: number;
-  imageSizes: string;
-  rotate: number[];
-  y: number[];
-};
-
-const BOOK_ILLUSTRATION_SRC = '/illustrations/livro-magico-aberto.webp';
-const AUTO_ROTATION_MS = 5500;
-
-const activeFloatY: number[] = [0, -5, 0];
-const activeFloatRotate: number[] = [0, 0.4, 0];
-
-const sideLayouts: Record<SideCoverKind, SideCoverLayout> = {
-  previous: {
-    baseRotate: -7,
-    className:
-      'left-[6%] top-[172px] h-[164px] w-[106px] sm:left-[13%] sm:top-[160px] sm:h-[178px] sm:w-[115px] md:left-[14%] md:top-[180px] xl:left-[12%] xl:top-[208px]',
-    hoverRotate: -6,
-    imageSizes: '(min-width: 1280px) 115px, (min-width: 640px) 115px, 28vw',
-    rotate: [-7, -6.4, -7],
-    y: [0, -5, 0],
-  },
-  next: {
-    baseRotate: 7,
-    className:
-      'right-[6%] top-[172px] h-[164px] w-[106px] sm:right-[13%] sm:top-[160px] sm:h-[178px] sm:w-[115px] md:right-[14%] md:top-[180px] xl:right-[12%] xl:top-[208px]',
-    hoverRotate: 6,
-    imageSizes: '(min-width: 1280px) 115px, (min-width: 640px) 115px, 28vw',
-    rotate: [7, 6.4, 7],
-    y: [0, -5, 0],
-  },
-};
-
-function selectCarouselStories(stories: Story[]) {
-  const published = stories.filter((story) => story.status === 'published');
-  const storyOfWeek = published.filter((story) => story.storyOfWeek);
-  const popular = published.filter(
-    (story) => story.popular && !storyOfWeek.some((weekStory) => weekStory.slug === story.slug),
+function selectHeroStories(stories: Story[]) {
+  const publishedStories = stories.filter(
+    (story) => story.status === 'published',
   );
-  const recent = published
+
+  const priorityStories = publishedStories.filter(
+    (story) => story.storyOfWeek || story.popular,
+  );
+
+  const recentStories = publishedStories
     .filter(
       (story) =>
-        !storyOfWeek.some((weekStory) => weekStory.slug === story.slug) &&
-        !popular.some((popularStory) => popularStory.slug === story.slug),
+        !priorityStories.some(
+          (priorityStory) => priorityStory.slug === story.slug,
+        ),
     )
-    .sort((firstStory, secondStory) => new Date(secondStory.createdAt).getTime() - new Date(firstStory.createdAt).getTime());
+    .sort(
+      (firstStory, secondStory) =>
+        new Date(secondStory.createdAt).getTime() -
+        new Date(firstStory.createdAt).getTime(),
+    );
 
-  return [...storyOfWeek, ...popular, ...recent].slice(0, 8);
-}
-
-function getCategoryPalette(story: Story) {
-  const category = `${story.category} ${story.categorySlug}`.toLowerCase();
-
-  if (category.includes('amizade')) {
-    return ['#ffe7a3', '#f36f91', '#7c4cb0'];
-  }
-
-  if (category.includes('natureza')) {
-    return ['#bfeaf5', '#a9d9bd', '#3b246b'];
-  }
-
-  if (category.includes('sonho') || category.includes('imagina')) {
-    return ['#b79bef', '#ffd6e8', '#3b246b'];
-  }
-
-  if (category.includes('coragem') || category.includes('aventura')) {
-    return ['#ffcf86', '#f36f91', '#3b246b'];
-  }
-
-  return [story.color || '#bfeaf5', '#fff8ea', story.accentColor || '#3b246b'];
+  return [...priorityStories, ...recentStories].slice(0, MAX_STORIES);
 }
 
 function openWithSpace(event: KeyboardEvent<HTMLAnchorElement>) {
@@ -96,239 +47,518 @@ function openWithSpace(event: KeyboardEvent<HTMLAnchorElement>) {
   }
 }
 
-function activateWithKeyboard(event: KeyboardEvent<HTMLButtonElement>, action: () => void) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    action();
-  }
-}
-
-export function MagicBookshelf({ stories }: MagicBookshelfProps) {
+export function MagicBookshelf({
+  stories,
+}: MagicBookshelfProps) {
   const reducedMotion = useReducedMotion();
-  const carouselStories = useMemo(() => selectCarouselStories(stories), [stories]);
+  const heroStories = useMemo(
+    () => selectHeroStories(stories),
+    [stories],
+  );
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    setActiveIndex(0);
-  }, [carouselStories.length]);
-
-  useEffect(() => {
-    if (reducedMotion || isPaused || carouselStories.length < 2) {
+    if (reducedMotion || isPaused || heroStories.length <= 1) {
       return;
     }
 
     const interval = window.setInterval(() => {
-      setActiveIndex((currentIndex) => (currentIndex + 1) % carouselStories.length);
-    }, AUTO_ROTATION_MS);
+      setActiveIndex((currentIndex) =>
+        currentIndex + 1 >= heroStories.length
+          ? 0
+          : currentIndex + 1,
+      );
+    }, ROTATION_INTERVAL);
 
     return () => window.clearInterval(interval);
-  }, [carouselStories.length, isPaused, reducedMotion]);
+  }, [heroStories.length, isPaused, reducedMotion]);
 
-  if (carouselStories.length === 0) {
+  useEffect(() => {
+    if (activeIndex >= heroStories.length) {
+      setActiveIndex(0);
+    }
+  }, [activeIndex, heroStories.length]);
+
+  if (heroStories.length === 0) {
     return (
-      <div className="relative mx-auto grid min-h-[360px] w-full max-w-[610px] place-items-center rounded-[2rem] bg-white/42 text-center shadow-[0_24px_70px_rgba(59,36,107,.10)] ring-1 ring-white/70">
-        <div>
-          <p className="font-display text-3xl font-black text-plum">A biblioteca está esperando histórias.</p>
-          <p className="mt-2 text-sm font-bold text-slate-600">Publique a primeira aventura no painel administrativo.</p>
+      <div className="relative mx-auto grid min-h-[480px] w-full max-w-[720px] place-items-center overflow-hidden rounded-[3rem] bg-gradient-to-br from-[#fff8ef] via-[#fff4f8] to-[#eee7ff] px-10 text-center shadow-[0_30px_90px_rgba(59,36,107,.14)]">
+        <div className="relative z-10 max-w-sm">
+          <div className="mx-auto mb-5 grid h-24 w-24 place-items-center rounded-full bg-white/80 text-5xl shadow-[0_18px_40px_rgba(59,36,107,.12)]">
+            📖
+          </div>
+
+          <p className="font-display text-3xl font-black text-[#3b246b]">
+            Novas histórias estão chegando.
+          </p>
+
+          <p className="mt-3 text-sm font-semibold text-slate-600">
+            Em breve, uma nova aventura surgirá deste livro mágico.
+          </p>
         </div>
       </div>
     );
   }
 
-  const previousIndex = (activeIndex - 1 + carouselStories.length) % carouselStories.length;
-  const nextIndex = (activeIndex + 1) % carouselStories.length;
-  const previousStory = carouselStories[previousIndex];
-  const activeStory = carouselStories[activeIndex];
-  const nextStory = carouselStories[nextIndex];
+  const previousIndex =
+    (activeIndex - 1 + heroStories.length) % heroStories.length;
+  const nextIndex = (activeIndex + 1) % heroStories.length;
+
+  const previousStory = heroStories[previousIndex];
+  const activeStory = heroStories[activeIndex];
+  const nextStory = heroStories[nextIndex];
 
   return (
-    <motion.div
+    <motion.section
       aria-label="Portal mágico de histórias"
-      className="relative mx-auto h-[570px] w-full max-w-[720px] overflow-visible sm:h-[620px] xl:h-[655px]"
-      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 22 }}
+      className="relative mx-auto w-full max-w-[740px] md:justify-self-end"
+      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, ease: 'easeOut' }}
+      transition={{ duration: 0.65, ease: 'easeOut' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={() => setIsPaused(false)}
     >
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-10 top-0 z-0 rounded-full bg-[radial-gradient(circle_at_50%_48%,rgba(255,231,163,.32),rgba(249,196,210,.18)_38%,rgba(183,155,239,.20)_66%,transparent_82%)] blur-sm"
         aria-hidden="true"
+        className="absolute -inset-12 rounded-full bg-[radial-gradient(circle_at_50%_45%,rgba(255,231,163,.55),rgba(249,196,210,.34)_38%,rgba(183,155,239,.26)_64%,transparent_78%)] blur-xl"
       />
 
-      <BookBaseImage />
+      <div className="relative min-h-[610px] overflow-visible px-2 pb-8 pt-4 sm:px-5 md:min-h-[660px]">
+        <MagicParticles reducedMotion={Boolean(reducedMotion)} />
 
-      {carouselStories.length > 1 ? (
-        <>
-          <SideStoryCover
-            kind="previous"
-            layout={sideLayouts.previous}
-            reducedMotion={Boolean(reducedMotion)}
-            story={previousStory}
-            onSelect={() => setActiveIndex(previousIndex)}
+        <div className="relative mx-auto min-h-[590px] max-w-[700px] md:min-h-[640px]">
+          <div
+            aria-hidden="true"
+            className="absolute left-1/2 top-[43%] h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.96)_0%,rgba(255,246,210,.82)_30%,rgba(249,196,210,.40)_58%,rgba(183,155,239,.19)_74%,transparent_77%)] blur-sm sm:h-[560px] sm:w-[560px]"
           />
-          <SideStoryCover
-            kind="next"
-            layout={sideLayouts.next}
-            reducedMotion={Boolean(reducedMotion)}
-            story={nextStory}
-            onSelect={() => setActiveIndex(nextIndex)}
-          />
-        </>
-      ) : null}
 
-      <motion.div
-        className="absolute left-1/2 top-[74px] z-40 -ml-[82px] h-[250px] w-[164px] sm:top-[76px] sm:-ml-[95px] sm:h-[290px] sm:w-[190px] xl:top-[82px]"
-        key={activeStory.slug}
-        initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 10, scale: 0.98 }}
-        animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: activeFloatY, rotate: activeFloatRotate, scale: 1 }}
-        transition={
-          reducedMotion
-            ? { duration: 0.2 }
-            : {
-                opacity: { duration: 0.25 },
-                scale: { duration: 0.25 },
-                y: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
-                rotate: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-[78px] left-1/2 z-10 h-[300px] w-[96vw] max-w-[650px] -translate-x-1/2 sm:h-[340px] sm:w-[650px]"
+            animate={reducedMotion ? undefined : { y: [0, -3, 0] }}
+            transition={{
+              duration: 7,
+              repeat: reducedMotion ? 0 : Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <Image
+              alt=""
+              className="object-contain"
+              fill
+              priority
+              sizes="(min-width: 640px) 650px, 96vw"
+              src="/illustrations/magic-book.png"
+            />
+          </motion.div>
+
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-[215px] left-1/2 z-20 h-[285px] w-[330px] -translate-x-1/2 overflow-hidden"
+            animate={
+              reducedMotion
+                ? { opacity: 0.65 }
+                : {
+                    opacity: [0.48, 0.88, 0.56],
+                    scaleY: [0.97, 1.05, 0.99],
+                  }
+            }
+            transition={{
+              duration: 4,
+              repeat: reducedMotion ? 0 : Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <div className="absolute bottom-0 left-1/2 h-full w-32 -translate-x-1/2 bg-[linear-gradient(to_top,rgba(255,211,92,.88),rgba(255,243,188,.55)_48%,transparent_100%)] blur-2xl" />
+            <div className="absolute bottom-0 left-1/2 h-full w-3 -translate-x-1/2 bg-white/75 blur-md" />
+            <div className="absolute bottom-3 left-[16%] h-[84%] w-12 -rotate-[16deg] bg-[linear-gradient(to_top,rgba(255,222,132,.55),transparent)] blur-lg" />
+            <div className="absolute bottom-3 right-[16%] h-[84%] w-12 rotate-[16deg] bg-[linear-gradient(to_top,rgba(255,222,132,.55),transparent)] blur-lg" />
+          </motion.div>
+
+          {heroStories.length > 1 ? (
+            <FloatingSideCover
+              reducedMotion={Boolean(reducedMotion)}
+              side="left"
+              story={previousStory}
+              onSelect={() => setActiveIndex(previousIndex)}
+            />
+          ) : null}
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeStory.slug}
+              className="absolute left-1/2 top-[62px] z-40 -translate-x-1/2 sm:top-[54px]"
+              initial={
+                reducedMotion
+                  ? { opacity: 1 }
+                  : { opacity: 0, y: 18, scale: 0.94 }
               }
-        }
-      >
-        <Link
-          aria-label={`Abrir história ${activeStory.title}`}
-          className="group relative block h-full w-full overflow-hidden rounded-[1.4rem] bg-white p-2.5 shadow-[0_28px_60px_rgba(59,36,107,.26)] outline-none ring-1 ring-white/90 transition focus-visible:ring-4 focus-visible:ring-coral/55 sm:rounded-[1.55rem] sm:p-3"
-          href={`/historias/${activeStory.slug}`}
-          onKeyDown={openWithSpace}
-        >
-          <span className="relative block h-full w-full overflow-hidden rounded-[1rem] bg-cream sm:rounded-[1.12rem]">
-            <StoryCoverImage priority sizes="(min-width: 640px) 190px, 164px" story={activeStory} />
-          </span>
-          <span className="pointer-events-none absolute inset-3 rounded-[1rem] bg-gradient-to-t from-plum/18 via-transparent to-white/22 opacity-70 transition group-hover:opacity-45" aria-hidden="true" />
-        </Link>
-      </motion.div>
-
-      <div className="absolute inset-x-0 bottom-[102px] z-50 flex items-center justify-center gap-2 sm:bottom-[104px]">
-        {carouselStories.map((story, index) => {
-          const isActive = index === activeIndex;
-
-          return (
-            <button
-              aria-label={`Selecionar história ${story.title}`}
-              aria-current={isActive ? 'true' : undefined}
-              className="grid h-7 w-7 place-items-center rounded-full outline-none transition focus-visible:ring-4 focus-visible:ring-coral/45"
-              key={story.slug}
-              onClick={() => setActiveIndex(index)}
-              onKeyDown={(event) => activateWithKeyboard(event, () => setActiveIndex(index))}
-              type="button"
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={
+                reducedMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, y: -12, scale: 0.96 }
+              }
+              transition={{ duration: 0.45, ease: 'easeOut' }}
             >
-              <span
-                className={`block h-2.5 rounded-full transition-all ${isActive ? 'w-8 bg-plum shadow-[0_7px_16px_rgba(59,36,107,.22)]' : 'w-2.5 bg-plum/25 hover:bg-plum/45'}`}
+              <FeaturedStoryCover
+                reducedMotion={Boolean(reducedMotion)}
+                story={activeStory}
               />
-            </button>
-          );
-        })}
-      </div>
+            </motion.div>
+          </AnimatePresence>
 
+          {heroStories.length > 1 ? (
+            <FloatingSideCover
+              reducedMotion={Boolean(reducedMotion)}
+              side="right"
+              story={nextStory}
+              onSelect={() => setActiveIndex(nextIndex)}
+            />
+          ) : null}
+
+          <div className="absolute bottom-[48px] left-1/2 z-50 -translate-x-1/2">
+            <Link
+              className="inline-flex min-h-12 items-center gap-2 whitespace-nowrap rounded-full bg-[#3b246b] px-7 py-3.5 text-sm font-black text-white shadow-[0_16px_34px_rgba(59,36,107,.25)] transition hover:-translate-y-1 hover:bg-[#f36f91] hover:shadow-[0_20px_38px_rgba(59,36,107,.30)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#f36f91]/40"
+              href={`/historias/${activeStory.slug}`}
+              onKeyDown={openWithSpace}
+            >
+              <span aria-hidden="true">📖</span>
+              Ler esta história
+            </Link>
+          </div>
+
+          <StoryDots
+            activeIndex={activeIndex}
+            stories={heroStories}
+            onSelect={setActiveIndex}
+          />
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+function FeaturedStoryCover({
+  reducedMotion,
+  story,
+}: {
+  reducedMotion: boolean;
+  story: Story;
+}) {
+  return (
+    <motion.div
+      animate={
+        reducedMotion
+          ? undefined
+          : {
+              y: [0, -5, 0],
+              rotate: [-0.35, 0.35, -0.35],
+            }
+      }
+      transition={{
+        duration: 6.2,
+        repeat: reducedMotion ? 0 : Infinity,
+        ease: 'easeInOut',
+      }}
+    >
       <Link
-        aria-label={`Ler esta história: ${activeStory.title}`}
-        className="absolute bottom-[34px] left-1/2 z-50 inline-flex min-h-12 -translate-x-1/2 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-plum px-7 py-3 text-base font-black text-white shadow-[0_18px_42px_rgba(59,36,107,.24)] outline-none transition duration-300 hover:-translate-y-1 hover:bg-coral hover:shadow-[0_24px_52px_rgba(243,111,145,.28)] focus-visible:ring-4 focus-visible:ring-coral/45"
-        href={`/historias/${activeStory.slug}`}
+        aria-label={`Abrir história ${story.title}`}
+        className="group relative block h-[250px] w-[164px] overflow-hidden rounded-[1.5rem] bg-white shadow-[0_30px_60px_rgba(59,36,107,.30)] ring-[11px] ring-white transition duration-300 hover:-translate-y-2 hover:scale-[1.035] focus-visible:outline-none focus-visible:ring-[11px] focus-visible:ring-white sm:h-[300px] sm:w-[196px]"
+        href={`/historias/${story.slug}`}
         onKeyDown={openWithSpace}
       >
-        <BookOpen className="h-5 w-5" />
-        Ler esta história
+        {story.coverUrl ? (
+          <Image
+            alt={`Capa de ${story.title}`}
+            className="object-cover"
+            fill
+            priority
+            sizes="(min-width: 640px) 196px, 164px"
+            src={story.coverUrl}
+          />
+        ) : (
+          <BookPlaceholder story={story} />
+        )}
+
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0 left-0 z-20 w-3 bg-gradient-to-r from-black/24 via-white/15 to-transparent"
+        />
+
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 z-20 bg-gradient-to-t from-[#3b246b]/26 via-transparent to-white/14"
+        />
+
+        <span className="absolute inset-x-3 bottom-3 z-30 rounded-2xl bg-white/94 px-3 py-2 text-center opacity-0 shadow-lg backdrop-blur transition duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
+          <span className="line-clamp-2 block text-sm font-black leading-5 text-[#3b246b]">
+            {story.title}
+          </span>
+
+          <span className="mt-1 block text-xs font-bold text-[#f36f91]">
+            {story.ageRange}
+          </span>
+        </span>
       </Link>
     </motion.div>
   );
 }
 
-function BookBaseImage() {
-  const [imageFailed, setImageFailed] = useState(false);
-
-  if (imageFailed) {
-    return <BookBaseFallback />;
-  }
-
-  return (
-    <div className="pointer-events-none absolute bottom-[86px] left-1/2 z-10 h-[330px] w-[min(95vw,620px)] -translate-x-1/2 sm:bottom-[86px] sm:h-[360px] xl:bottom-[82px]" aria-hidden="true">
-      <Image
-        alt=""
-        className="object-contain"
-        fill
-        onError={() => setImageFailed(true)}
-        priority
-        sizes="(min-width: 1280px) 620px, 95vw"
-        src={BOOK_ILLUSTRATION_SRC}
-      />
-    </div>
-  );
-}
-
-function BookBaseFallback() {
-  return (
-    <div className="pointer-events-none absolute bottom-[96px] left-1/2 z-10 h-[300px] w-[min(95vw,620px)] -translate-x-1/2 sm:h-[340px]" aria-hidden="true">
-      <div className="absolute inset-x-[6%] bottom-8 h-20 rounded-[50%] bg-plum/18 blur-2xl" />
-      <div className="absolute left-1/2 top-[9%] h-[72%] w-[46%] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.78)_0%,rgba(255,231,163,.52)_32%,rgba(255,207,134,.20)_58%,transparent_76%)] blur-md" />
-      <div className="absolute inset-x-[4%] bottom-14 h-[34%] rounded-[46%_46%_18%_18%] bg-[linear-gradient(180deg,#fffaf0_0%,#ffe7a3_68%,#6a3a76_69%,#3b246b_100%)] shadow-[0_24px_42px_rgba(59,36,107,.18)]" />
-    </div>
-  );
-}
-
-function SideStoryCover({
-  kind,
-  layout,
+function FloatingSideCover({
   onSelect,
   reducedMotion,
+  side,
   story,
 }: {
-  kind: SideCoverKind;
-  layout: SideCoverLayout;
   onSelect: () => void;
   reducedMotion: boolean;
+  side: 'left' | 'right';
   story: Story;
 }) {
+  const position =
+    side === 'left'
+      ? 'left-[5%] top-[225px] sm:left-[9%] sm:top-[230px]'
+      : 'right-[5%] top-[225px] sm:right-[9%] sm:top-[230px]';
+
+  const rotation: number[] =
+    side === 'left' ? [-7, -5.5, -7] : [7, 5.5, 7];
+
+  const floatingY: number[] =
+    side === 'left' ? [0, -5, 0] : [0, 5, 0];
+
   return (
     <motion.button
-      aria-label={`${kind === 'previous' ? 'Mostrar história anterior' : 'Mostrar próxima história'}: ${story.title}`}
-      className={`absolute z-30 overflow-hidden rounded-[1.2rem] bg-white p-2 shadow-[0_22px_42px_rgba(59,36,107,.20)] outline-none ring-1 ring-white/85 transition focus-visible:ring-4 focus-visible:ring-coral/50 ${layout.className}`}
-      animate={reducedMotion ? { rotate: layout.baseRotate } : { y: layout.y, rotate: layout.rotate }}
+      aria-label={`Destacar história ${story.title}`}
+      className={`absolute ${position} z-30 h-[150px] w-[98px] overflow-hidden rounded-[1.15rem] bg-white p-0 shadow-[0_20px_42px_rgba(59,36,107,.22)] ring-[7px] ring-white transition focus-visible:outline-none focus-visible:ring-[#f36f91]/55 sm:h-[180px] sm:w-[118px]`}
       onClick={onSelect}
-      onKeyDown={(event) => activateWithKeyboard(event, onSelect)}
-      transition={{ duration: kind === 'previous' ? 5.8 : 6.2, repeat: reducedMotion ? 0 : Infinity, ease: 'easeInOut' }}
       type="button"
-      whileHover={reducedMotion ? undefined : { scale: 1.05, rotate: layout.hoverRotate }}
+      initial={
+        reducedMotion
+          ? { opacity: 1 }
+          : { opacity: 0, scale: 0.9, y: 12 }
+      }
+      animate={
+        reducedMotion
+          ? {
+              opacity: 1,
+              rotate: side === 'left' ? -7 : 7,
+            }
+          : {
+              opacity: 1,
+              scale: 1,
+              y: floatingY,
+              rotate: rotation,
+            }
+      }
+      transition={{
+        opacity: { duration: 0.35 },
+        scale: { duration: 0.35 },
+        y: {
+          duration: 6,
+          repeat: reducedMotion ? 0 : Infinity,
+          ease: 'easeInOut',
+        },
+        rotate: {
+          duration: 6.5,
+          repeat: reducedMotion ? 0 : Infinity,
+          ease: 'easeInOut',
+        },
+      }}
+      whileHover={
+        reducedMotion
+          ? undefined
+          : {
+              y: -9,
+              scale: 1.05,
+              zIndex: 45,
+            }
+      }
     >
-      <span className="relative block h-full w-full overflow-hidden rounded-[0.85rem] bg-cream">
-        <StoryCoverImage sizes={layout.imageSizes} story={story} />
-      </span>
-      <span className="pointer-events-none absolute inset-2 rounded-[0.85rem] bg-gradient-to-t from-plum/20 via-transparent to-white/18" aria-hidden="true" />
+      {story.coverUrl ? (
+        <Image
+          alt={`Capa de ${story.title}`}
+          className="object-cover"
+          fill
+          loading="lazy"
+          sizes="(min-width: 640px) 118px, 98px"
+          src={story.coverUrl}
+        />
+      ) : (
+        <BookPlaceholder story={story} />
+      )}
+
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-[#3b246b]/22 via-transparent to-white/12"
+      />
     </motion.button>
   );
 }
 
-function StoryCoverImage({ priority = false, sizes, story }: { priority?: boolean; sizes: string; story: Story }) {
-  if (story.coverUrl) {
-    return <Image alt={`Capa de ${story.title}`} className="object-cover" fill priority={priority} sizes={sizes} src={story.coverUrl} />;
-  }
-
-  return <BookPlaceholder story={story} />;
+function StoryDots({
+  activeIndex,
+  onSelect,
+  stories,
+}: {
+  activeIndex: number;
+  onSelect: (index: number) => void;
+  stories: Story[];
+}) {
+  return (
+    <div className="absolute bottom-[10px] left-1/2 z-50 flex -translate-x-1/2 items-center justify-center gap-2">
+      {stories.map((story, index) => (
+        <button
+          aria-label={`Mostrar ${story.title}`}
+          aria-current={
+            index === activeIndex ? 'true' : undefined
+          }
+          className={`h-2.5 rounded-full transition-all ${
+            index === activeIndex
+              ? 'w-8 bg-[#3b246b]'
+              : 'w-2.5 bg-[#3b246b]/25 hover:bg-[#3b246b]/45'
+          }`}
+          key={story.slug}
+          onClick={() => onSelect(index)}
+          type="button"
+        />
+      ))}
+    </div>
+  );
 }
 
 function BookPlaceholder({ story }: { story: Story }) {
-  const [from, to, accent] = getCategoryPalette(story);
-
   return (
-    <span className="absolute inset-0 overflow-hidden" style={{ background: `linear-gradient(145deg, ${from}, ${to})` }}>
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 90 180" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 130c18-20 34-9 50-25 16-17 26-10 40-2v77H0Z" fill="#fff8ea" opacity=".42" />
-        <path d="M12 42 23 20l11 22 21 11-21 11-11 22-11-22-22-11Z" fill="#ffe7a3" opacity=".9" />
-        <path d="M58 97c14-24 31-17 26 2-3 14-18 13-26-2Z" fill="#f36f91" opacity=".75" />
-        <path d="M21 126c10-20 26-20 37 0" fill="none" stroke={accent} strokeLinecap="round" strokeWidth="7" opacity=".78" />
-        <path d="M18 150h54" stroke={accent} strokeLinecap="round" strokeWidth="5" opacity=".55" />
-      </svg>
-      <span className="absolute inset-x-2 bottom-4 rounded-xl bg-white/76 px-2 py-2 text-center text-[10px] font-black leading-3 text-plum shadow-sm">
-        {story.category}
+    <span className="absolute inset-0 grid place-items-center bg-gradient-to-br from-[#d9c7ff] via-[#ffdce8] to-[#fff0bd] px-2 text-center">
+      <span className="text-xs font-black leading-4 text-[#3b246b]">
+        {story.title}
       </span>
     </span>
+  );
+}
+
+function MagicParticles({
+  reducedMotion,
+}: {
+  reducedMotion: boolean;
+}) {
+  const particles: Array<{
+    className: string;
+    delay: number;
+  }> = [
+    {
+      className: 'left-[12%] top-[18%] text-[#ffe39a]',
+      delay: 0,
+    },
+    {
+      className: 'right-[14%] top-[16%] text-white',
+      delay: 0.7,
+    },
+    {
+      className: 'left-[8%] bottom-[28%] text-[#f36f91]',
+      delay: 1.4,
+    },
+    {
+      className: 'right-[9%] bottom-[24%] text-[#8dc6ae]',
+      delay: 0.4,
+    },
+    {
+      className: 'left-[30%] top-[10%] text-white',
+      delay: 1.1,
+    },
+    {
+      className: 'right-[31%] top-[8%] text-[#ffe39a]',
+      delay: 1.8,
+    },
+  ];
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-10"
+    >
+      {particles.map((particle, index) => (
+        <motion.span
+          animate={
+            reducedMotion
+              ? { opacity: 0.55 }
+              : {
+                  opacity: [0.2, 1, 0.3],
+                  scale: [0.8, 1.35, 0.85],
+                  y: [0, -8, 0],
+                }
+          }
+          className={`absolute ${particle.className} text-xl drop-shadow-[0_0_12px_currentColor]`}
+          key={index}
+          transition={{
+            delay: particle.delay,
+            duration: 3.1 + index * 0.35,
+            repeat: reducedMotion ? 0 : Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          ✦
+        </motion.span>
+      ))}
+
+      <motion.span
+        animate={
+          reducedMotion
+            ? undefined
+            : {
+                x: [0, 18, 0],
+                y: [0, -16, 0],
+                rotate: [-8, 10, -8],
+              }
+        }
+        className="absolute right-[8%] top-[19%] h-12 w-12"
+        transition={{
+          duration: 7,
+          repeat: reducedMotion ? 0 : Infinity,
+          ease: 'easeInOut',
+        }}
+      >
+        <span className="absolute left-0 top-2 h-8 w-6 rotate-[-14deg] rounded-full rounded-br-sm bg-[#f36f91]/80" />
+        <span className="absolute right-0 top-0 h-9 w-6 rotate-[14deg] rounded-full rounded-bl-sm bg-[#f9c4d2]/95" />
+        <span className="absolute left-[23px] top-2 h-9 w-1 rounded-full bg-[#3b246b]/65" />
+      </motion.span>
+
+      <motion.span
+        animate={
+          reducedMotion
+            ? undefined
+            : {
+                y: [0, -7, 0],
+                rotate: [-7, 5, -7],
+              }
+        }
+        className="absolute bottom-[13%] left-[7%] h-9 w-20 rounded-[100%_0] bg-[#8dc6ae]/55"
+        transition={{
+          duration: 7.8,
+          repeat: reducedMotion ? 0 : Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+
+      <motion.span
+        animate={
+          reducedMotion
+            ? undefined
+            : {
+                y: [0, -5, 0],
+                rotate: [7, -5, 7],
+              }
+        }
+        className="absolute bottom-[10%] right-[7%] h-8 w-16 rounded-[0_100%] bg-[#9bc983]/60"
+        transition={{
+          duration: 8.4,
+          repeat: reducedMotion ? 0 : Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+    </div>
   );
 }
