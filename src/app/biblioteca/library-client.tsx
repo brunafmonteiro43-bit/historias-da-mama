@@ -1,51 +1,137 @@
 'use client';
 
 import { BookOpen, Search, SlidersHorizontal } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { StoryCard } from '@/components/story-card';
 import type { Category, Story } from '@/types';
 
 type SortMode = 'recentes' | 'mais-lidas' | 'titulo';
+type FilterState = {
+  ageRange: string;
+  category: string;
+  query: string;
+  sort: SortMode;
+};
 
 type LibraryClientProps = {
   categories: Category[];
   stories: Story[];
 };
 
-export function LibraryClient({ categories, stories }: LibraryClientProps) {
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('todas');
-  const [ageRange, setAgeRange] = useState('todas');
-  const [sort, setSort] = useState<SortMode>('recentes');
+const ALL_FILTERS = 'todas';
+const SORT_MODES: SortMode[] = ['recentes', 'mais-lidas', 'titulo'];
 
-  const ageRanges = useMemo(() => Array.from(new Set(stories.map((story) => story.ageRange))), [stories]);
+function normalizeText(value: string | null | undefined) {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function isSortMode(value: string | null): value is SortMode {
+  return SORT_MODES.includes(value as SortMode);
+}
+
+function searchHaystack(story: Story) {
+  return normalizeText(
+    [
+      story.title,
+      story.description,
+      story.fullDescription,
+      story.author,
+      story.category,
+      story.categorySlug,
+      story.ageRange,
+      story.readingTime,
+      story.theme,
+      ...story.pages,
+    ].join(' '),
+  );
+}
+
+export function LibraryClient({ categories, stories }: LibraryClientProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const categorySlugs = useMemo(() => new Set(categories.map((item) => item.slug)), [categories]);
+  const ageRanges = useMemo(() => Array.from(new Set(stories.map((story) => story.ageRange))).sort(), [stories]);
+  const ageRangeSet = useMemo(() => new Set(ageRanges), [ageRanges]);
+
+  const paramsState = useMemo<FilterState>(() => {
+    const requestedCategory = searchParams.get('categoria') ?? ALL_FILTERS;
+    const requestedAgeRange = searchParams.get('idade') ?? ALL_FILTERS;
+    const requestedSort = searchParams.get('ordem');
+
+    return {
+      ageRange: ageRangeSet.has(requestedAgeRange) ? requestedAgeRange : ALL_FILTERS,
+      category: categorySlugs.has(requestedCategory) ? requestedCategory : ALL_FILTERS,
+      query: searchParams.get('q') ?? '',
+      sort: isSortMode(requestedSort) ? requestedSort : 'recentes',
+    };
+  }, [ageRangeSet, categorySlugs, searchParams]);
+
+  const [queryDraft, setQueryDraft] = useState(paramsState.query);
+
+  useEffect(() => {
+    setQueryDraft(paramsState.query);
+  }, [paramsState.query]);
+
   const filteredStories = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const searchTerms = normalizeText(paramsState.query).trim().split(/\s+/).filter(Boolean);
 
     return stories
       .filter((story) => {
-        const matchesSearch =
-          !normalizedQuery ||
-          story.title.toLowerCase().includes(normalizedQuery) ||
-          story.description.toLowerCase().includes(normalizedQuery) ||
-          story.category.toLowerCase().includes(normalizedQuery);
-        const matchesCategory = category === 'todas' || story.categorySlug === category;
-        const matchesAge = ageRange === 'todas' || story.ageRange === ageRange;
+        const matchesSearch = searchTerms.length === 0 || searchTerms.every((term) => searchHaystack(story).includes(term));
+        const matchesCategory = paramsState.category === ALL_FILTERS || story.categorySlug === paramsState.category;
+        const matchesAge = paramsState.ageRange === ALL_FILTERS || story.ageRange === paramsState.ageRange;
 
         return matchesSearch && matchesCategory && matchesAge;
       })
       .sort((a, b) => {
-        if (sort === 'mais-lidas') {
+        if (paramsState.sort === 'mais-lidas') {
           return b.readCount - a.readCount;
         }
 
-        if (sort === 'titulo') {
+        if (paramsState.sort === 'titulo') {
           return a.title.localeCompare(b.title, 'pt-BR');
         }
 
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
-  }, [ageRange, category, query, sort, stories]);
+  }, [paramsState.ageRange, paramsState.category, paramsState.query, paramsState.sort, stories]);
+
+  function updateFilters(nextFilters: Partial<FilterState>) {
+    const nextState = { ...paramsState, ...nextFilters };
+    const nextParams = new URLSearchParams(searchParams.toString());
+
+    if (nextState.query.trim()) {
+      nextParams.set('q', nextState.query.trim());
+    } else {
+      nextParams.delete('q');
+    }
+
+    if (nextState.category !== ALL_FILTERS) {
+      nextParams.set('categoria', nextState.category);
+    } else {
+      nextParams.delete('categoria');
+    }
+
+    if (nextState.ageRange !== ALL_FILTERS) {
+      nextParams.set('idade', nextState.ageRange);
+    } else {
+      nextParams.delete('idade');
+    }
+
+    if (nextState.sort !== 'recentes') {
+      nextParams.set('ordem', nextState.sort);
+    } else {
+      nextParams.delete('ordem');
+    }
+
+    router.replace(`${pathname}${nextParams.size ? `?${nextParams.toString()}` : ''}`, { scroll: false });
+  }
 
   return (
     <main className="mx-auto w-full max-w-[1200px] px-5 py-12 sm:px-6 lg:px-8">
@@ -70,17 +156,20 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
             <input
               aria-label="Buscar histórias"
               className="w-full rounded-2xl border border-lilac/35 bg-cream/45 py-3 pl-12 pr-4 outline-none transition focus:border-plum focus:ring-4 focus:ring-lilac/25"
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQueryDraft(event.target.value);
+                updateFilters({ query: event.target.value });
+              }}
               placeholder="Buscar histórias..."
-              value={query}
+              value={queryDraft}
             />
           </label>
 
           <select
             aria-label="Filtrar por categoria"
             className="rounded-2xl border border-lilac/35 bg-skyPastel/25 px-4 py-3 text-plum outline-none focus:border-plum focus:ring-4 focus:ring-lilac/25"
-            onChange={(event) => setCategory(event.target.value)}
-            value={category}
+            onChange={(event) => updateFilters({ category: event.target.value })}
+            value={paramsState.category}
           >
             <option value="todas">Todas as categorias</option>
             {categories.map((item) => (
@@ -93,8 +182,8 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
           <select
             aria-label="Filtrar por idade"
             className="rounded-2xl border border-lilac/35 bg-rose/30 px-4 py-3 text-plum outline-none focus:border-plum focus:ring-4 focus:ring-lilac/25"
-            onChange={(event) => setAgeRange(event.target.value)}
-            value={ageRange}
+            onChange={(event) => updateFilters({ ageRange: event.target.value })}
+            value={paramsState.ageRange}
           >
             <option value="todas">Todas as idades</option>
             {ageRanges.map((item) => (
@@ -105,8 +194,8 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
           <select
             aria-label="Ordenar histórias"
             className="rounded-2xl border border-lilac/35 bg-sun/35 px-4 py-3 text-plum outline-none focus:border-plum focus:ring-4 focus:ring-lilac/25"
-            onChange={(event) => setSort(event.target.value as SortMode)}
-            value={sort}
+            onChange={(event) => updateFilters({ sort: event.target.value as SortMode })}
+            value={paramsState.sort}
           >
             <option value="recentes">Mais recentes</option>
             <option value="mais-lidas">Mais lidas</option>
@@ -117,7 +206,8 @@ export function LibraryClient({ categories, stories }: LibraryClientProps) {
 
       <div className="mt-8 flex items-center gap-2 text-sm font-bold text-slate-600">
         <SlidersHorizontal className="h-4 w-4 text-plum" />
-        {filteredStories.length} história{filteredStories.length === 1 ? '' : 's'} encontrada{filteredStories.length === 1 ? '' : 's'}
+        {filteredStories.length} história{filteredStories.length === 1 ? '' : 's'} encontrada
+        {filteredStories.length === 1 ? '' : 's'}
       </div>
 
       {filteredStories.length > 0 ? (

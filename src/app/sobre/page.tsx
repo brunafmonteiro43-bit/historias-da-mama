@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { InstitutionalPage, InstitutionalSection } from '@/components/institutional-page';
 
 export const metadata: Metadata = {
-  title: 'Sobre | Histórias da Mamá',
+  title: 'Sobre',
   description: 'Conheça a proposta, a missão e o funcionamento da biblioteca infantil Histórias da Mamá.',
 };
 

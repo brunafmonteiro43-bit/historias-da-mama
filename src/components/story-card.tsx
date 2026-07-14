@@ -10,7 +10,7 @@ type StoryCardProps = {
 
 export function StoryCard({ story }: StoryCardProps) {
   return (
-    <article className="group flex h-full min-w-[270px] flex-col overflow-hidden rounded-[1.35rem] border border-lilac/15 bg-white shadow-[0_18px_48px_rgba(59,36,107,.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_64px_rgba(59,36,107,.16)]">
+    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-lilac/15 bg-white shadow-[0_18px_48px_rgba(59,36,107,.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_64px_rgba(59,36,107,.16)]">
       <StoryCover story={story} />
 
       <div className="flex flex-1 flex-col gap-4 p-5">

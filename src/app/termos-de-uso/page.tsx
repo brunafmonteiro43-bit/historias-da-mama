@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { InstitutionalPage, InstitutionalSection } from '@/components/institutional-page';
 
 export const metadata: Metadata = {
-  title: 'Termos de Uso | Histórias da Mamá',
+  title: 'Termos de Uso',
   description: 'Conheça as regras e condições para utilização do site Histórias da Mamá.',
 };
 

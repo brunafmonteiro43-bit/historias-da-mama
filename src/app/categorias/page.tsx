@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getPublicCategories } from '@/lib/public-data';
 
 export const metadata: Metadata = {
-  title: 'Categorias | Histórias da Mamá',
+  title: 'Categorias',
   description: 'Explore categorias de histórias infantis na biblioteca Histórias da Mamá.',
 };
 

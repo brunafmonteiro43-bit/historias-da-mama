@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { InstitutionalPage, InstitutionalSection } from '@/components/institutional-page';
 
 export const metadata: Metadata = {
-  title: 'Política de Privacidade | Histórias da Mamá',
+  title: 'Política de Privacidade',
   description:
     'Saiba como o Histórias da Mamá trata informações e protege a privacidade de visitantes, autores e colaboradores.',
 };
