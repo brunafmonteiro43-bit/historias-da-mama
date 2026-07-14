@@ -105,7 +105,7 @@ export function MagicBookshelf({
   const activeStory = heroStories[activeIndex];
   const floatingStories = heroStories
     .filter((_, index) => index !== activeIndex)
-    .slice(0, 2);
+    .slice(0, 4);
 
   function selectStory(story: Story) {
     const nextIndex = heroStories.findIndex(
@@ -139,25 +139,25 @@ export function MagicBookshelf({
         className="absolute -bottom-10 left-[10%] h-24 w-[80%] rounded-full bg-plum/18 blur-3xl"
       />
 
-      <div className="relative min-h-[600px] overflow-visible px-2 pb-4 pt-6 sm:px-6 md:min-h-[650px]">
+      <div className="relative min-h-[600px] overflow-visible px-2 pb-6 pt-4 sm:px-6 md:min-h-[650px]">
         <MagicParticles reducedMotion={Boolean(reducedMotion)} />
 
         <div className="relative mx-auto flex min-h-[590px] max-w-[650px] items-center justify-center md:min-h-[630px]">
           <div
             aria-hidden="true"
-            className="absolute left-1/2 top-1/2 h-[430px] w-[430px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.94)_0%,rgba(255,244,209,.78)_34%,rgba(249,196,210,.42)_58%,rgba(183,155,239,.18)_74%,transparent_76%)] blur-sm sm:h-[500px] sm:w-[500px]"
+            className="absolute left-1/2 top-1/2 h-[450px] w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.96)_0%,rgba(255,244,209,.83)_34%,rgba(249,196,210,.48)_58%,rgba(183,155,239,.20)_74%,transparent_76%)] blur-sm sm:h-[540px] sm:w-[540px]"
           />
 
           <div
             aria-hidden="true"
-            className="absolute left-1/2 top-[19%] h-48 w-[70%] -translate-x-1/2 rounded-[50%] bg-white/40 blur-3xl"
+            className="absolute left-1/2 top-[20%] h-44 w-[62%] -translate-x-1/2 rounded-[50%] bg-white/38 blur-3xl"
           />
 
           <MagicOpenBook reducedMotion={Boolean(reducedMotion)} />
 
           <motion.div
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-[27%] left-1/2 z-20 h-[250px] w-[280px] -translate-x-1/2 overflow-hidden"
+            className="pointer-events-none absolute bottom-[25%] left-1/2 z-20 h-[265px] w-[320px] -translate-x-1/2 overflow-hidden"
             animate={
               reducedMotion
                 ? { opacity: 0.72 }
@@ -182,7 +182,7 @@ export function MagicBookshelf({
           <AnimatePresence mode="wait">
             <motion.div
               key={activeStory.slug}
-              className="absolute left-1/2 top-[15%] z-30 -translate-x-1/2"
+              className="absolute left-1/2 top-[17%] z-30 -translate-x-1/2"
               initial={
                 reducedMotion
                   ? { opacity: 1 }
@@ -216,7 +216,7 @@ export function MagicBookshelf({
             onSelect={setActiveIndex}
           />
 
-          <div className="absolute bottom-[9%] left-1/2 z-30 -translate-x-1/2">
+          <div className="absolute bottom-[11%] left-1/2 z-30 -translate-x-1/2">
             <Link
               className="inline-flex items-center gap-2 rounded-full bg-plum px-6 py-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(59,36,107,.24)] transition hover:-translate-y-1 hover:shadow-[0_20px_38px_rgba(59,36,107,.30)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-coral/45"
               href={`/historias/${activeStory.slug}`}
@@ -258,7 +258,7 @@ function FeaturedStoryCard({
     >
       <Link
         aria-label={`Abrir história ${story.title}`}
-        className="relative block h-[230px] w-[150px] overflow-hidden rounded-[1.35rem] bg-white shadow-[0_28px_50px_rgba(59,36,107,.28)] ring-[12px] ring-white transition duration-300 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_34px_60px_rgba(59,36,107,.34)] focus-visible:outline-none focus-visible:ring-[12px] focus-visible:ring-white sm:h-[270px] sm:w-[176px]"
+        className="relative block h-[242px] w-[158px] overflow-hidden rounded-[1.4rem] bg-white shadow-[0_28px_50px_rgba(59,36,107,.28)] ring-[12px] ring-white transition duration-300 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_34px_60px_rgba(59,36,107,.34)] focus-visible:outline-none focus-visible:ring-[12px] focus-visible:ring-white sm:h-[286px] sm:w-[186px]"
         href={`/historias/${story.slug}`}
         onKeyDown={openWithSpace}
       >
@@ -268,7 +268,7 @@ function FeaturedStoryCard({
             className="h-full w-full object-cover"
             fill
             priority
-            sizes="(min-width: 640px) 176px, 150px"
+            sizes="(min-width: 640px) 186px, 158px"
             src={story.coverUrl}
           />
         ) : (
@@ -309,82 +309,116 @@ function FloatingStoryCards({
   reducedMotion: boolean;
   stories: Story[];
 }) {
-  const positions = [
-    'left-[7%] top-[29%] sm:left-[11%]',
-    'right-[7%] top-[29%] sm:right-[11%]',
-  ];
+  const layouts = [
+    {
+      wrap: 'left-[10%] top-[24%] sm:left-[12%] sm:top-[24%]',
+      size: 'h-[138px] w-[90px] sm:h-[168px] sm:w-[110px]',
+      ring: 'ring-[6px] ring-white/88',
+      z: 'z-20',
+      imageClass: 'object-cover',
+      floatY: [0, -8, 0],
+      rotate: [-3, 2, -3],
+    },
+    {
+      wrap: 'left-[14%] bottom-[23%] sm:left-[16%] sm:bottom-[22%]',
+      size: 'h-[142px] w-[92px] sm:h-[172px] sm:w-[112px]',
+      ring: 'ring-[6px] ring-white/88',
+      z: 'z-20',
+      imageClass: 'object-cover',
+      floatY: [0, 8, 0],
+      rotate: [3, -2, 3],
+    },
+    {
+      wrap: 'right-[12%] top-[30%] sm:right-[15%] sm:top-[31%]',
+      size: 'h-[126px] w-[84px] sm:h-[154px] sm:w-[102px]',
+      ring: 'ring-[6px] ring-white/82',
+      z: 'z-20',
+      imageClass: 'object-cover',
+      floatY: [0, -5, 0],
+      rotate: [2, -1, 2],
+    },
+    {
+      wrap: 'right-[19%] bottom-[24%] sm:right-[21%] sm:bottom-[23%]',
+      size: 'h-[132px] w-[86px] sm:h-[160px] sm:w-[104px]',
+      ring: 'ring-[6px] ring-white/84',
+      z: 'z-10 opacity-92',
+      imageClass: 'object-cover',
+      floatY: [0, 6, 0],
+      rotate: [-2, 1, -2],
+    },
+  ] as const;
 
   return (
     <>
-      {stories.map((story, index) => (
-        <motion.button
-          aria-label={`Destacar história ${story.title}`}
-          className={`absolute z-20 ${positions[index]} group h-[148px] w-[96px] overflow-hidden rounded-[1rem] bg-white p-0 shadow-[0_18px_36px_rgba(59,36,107,.18)] ring-[6px] ring-white/65 transition focus-visible:outline-none focus-visible:ring-coral/50 sm:h-[172px] sm:w-[112px]`}
-          key={`${activeStory.slug}-${story.slug}`}
-          onClick={() => onSelect(story)}
-          type="button"
-          initial={
-            reducedMotion
-              ? { opacity: 1 }
-              : { opacity: 0, scale: 0.86, y: 12 }
-          }
-          animate={
-            reducedMotion
-              ? { opacity: 1 }
-              : {
-                  opacity: 1,
-                  scale: 1,
-                  y: [0, index % 2 === 0 ? -6 : 6, 0],
-                  rotate: [
-                    index % 2 === 0 ? -2 : 2,
-                    index % 2 === 0 ? 2 : -2,
-                    index % 2 === 0 ? -2 : 2,
-                  ],
-                }
-          }
-          transition={{
-            opacity: { duration: 0.35, delay: index * 0.08 },
-            scale: { duration: 0.35, delay: index * 0.08 },
-            y: {
-              duration: 5.8 + index * 0.5,
-              repeat: reducedMotion ? 0 : Infinity,
-              ease: 'easeInOut',
-            },
-            rotate: {
-              duration: 6.4 + index * 0.4,
-              repeat: reducedMotion ? 0 : Infinity,
-              ease: 'easeInOut',
-            },
-          }}
-          whileHover={
-            reducedMotion
-              ? undefined
-              : { y: -10, scale: 1.08, zIndex: 40 }
-          }
-        >
-          {story.coverUrl ? (
-            <Image
-              alt={`Capa de ${story.title}`}
-              className="h-full w-full object-cover"
-              fill
-              loading="lazy"
-              sizes="(min-width: 640px) 112px, 96px"
-              src={story.coverUrl}
+      {stories.map((story, index) => {
+        const layout = layouts[index] ?? layouts[layouts.length - 1];
+
+        return (
+          <motion.button
+            aria-label={`Destacar história ${story.title}`}
+            className={`absolute ${layout.wrap} ${layout.z} group overflow-hidden rounded-[1rem] bg-white p-0 shadow-[0_18px_36px_rgba(59,36,107,.18)] ${layout.size} ${layout.ring} transition focus-visible:outline-none focus-visible:ring-coral/50`}
+            key={`${activeStory.slug}-${story.slug}`}
+            onClick={() => onSelect(story)}
+            type="button"
+            initial={
+              reducedMotion
+                ? { opacity: 1 }
+                : { opacity: 0, scale: 0.86, y: 12 }
+            }
+            animate={
+              reducedMotion
+                ? { opacity: 1 }
+                : {
+                    opacity: 1,
+                    scale: 1,
+                    y: layout.floatY,
+                    rotate: layout.rotate,
+                  }
+            }
+            transition={{
+              opacity: { duration: 0.35, delay: index * 0.08 },
+              scale: { duration: 0.35, delay: index * 0.08 },
+              y: {
+                duration: 5.8 + index * 0.5,
+                repeat: reducedMotion ? 0 : Infinity,
+                ease: 'easeInOut',
+              },
+              rotate: {
+                duration: 6.4 + index * 0.4,
+                repeat: reducedMotion ? 0 : Infinity,
+                ease: 'easeInOut',
+              },
+            }}
+            whileHover={
+              reducedMotion
+                ? undefined
+                : { y: -10, scale: 1.08, zIndex: 40 }
+            }
+          >
+            {story.coverUrl ? (
+              <Image
+                alt={`Capa de ${story.title}`}
+                className={`h-full w-full ${layout.imageClass}`}
+                fill
+                loading="lazy"
+                sizes="(min-width: 640px) 112px, 96px"
+                src={story.coverUrl}
+              />
+            ) : (
+              <BookPlaceholder story={story} />
+            )}
+
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-plum/26 via-transparent to-white/14"
             />
-          ) : (
-            <BookPlaceholder story={story} />
-          )}
 
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-plum/26 via-transparent to-white/14"
-          />
-
-          <span className="pointer-events-none absolute inset-x-1 bottom-1 translate-y-2 rounded-lg bg-white/94 px-1.5 py-1 text-[9px] font-black leading-3 text-plum opacity-0 shadow-sm transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-            {story.title}
-          </span>
-        </motion.button>
-      ))}
+            <span className="pointer-events-none absolute inset-x-1 bottom-1 translate-y-2 rounded-lg bg-white/94 px-1.5 py-1 text-[9px] font-black leading-3 text-plum opacity-0 shadow-sm transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+              {story.title}
+            </span>
+          </motion.button>
+        );
+      })}
     </>
   );
 }
@@ -397,7 +431,7 @@ function MagicOpenBook({
   return (
     <motion.div
       aria-hidden="true"
-      className="absolute bottom-[11%] left-1/2 z-10 h-[250px] w-[450px] -translate-x-1/2 sm:h-[305px] sm:w-[600px]"
+      className="absolute bottom-[12%] left-1/2 z-10 h-[280px] w-[500px] -translate-x-1/2 sm:h-[330px] sm:w-[640px]"
       animate={
         reducedMotion
           ? undefined
@@ -411,17 +445,17 @@ function MagicOpenBook({
         ease: 'easeInOut',
       }}
     >
-      <div className="absolute bottom-2 left-1/2 h-16 w-[78%] -translate-x-1/2 rounded-[50%] bg-plum/18 blur-2xl" />
+      <div className="absolute bottom-3 left-1/2 h-16 w-[74%] -translate-x-1/2 rounded-[50%] bg-plum/18 blur-2xl" />
 
-      <div className="absolute bottom-7 left-1/2 h-[198px] w-[47%] -translate-x-[95%] -rotate-[8deg] rounded-[44%_12%_18%_48%] bg-[linear-gradient(145deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_-12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[242px]" />
+      <div className="absolute bottom-7 left-1/2 h-[214px] w-[46%] -translate-x-[95%] -rotate-[8deg] rounded-[44%_12%_18%_48%] bg-[linear-gradient(145deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_-12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[258px]" />
 
-      <div className="absolute bottom-7 left-1/2 h-[198px] w-[47%] -translate-x-[5%] rotate-[8deg] rounded-[12%_44%_48%_18%] bg-[linear-gradient(215deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[242px]" />
+      <div className="absolute bottom-7 left-1/2 h-[214px] w-[46%] -translate-x-[5%] rotate-[8deg] rounded-[12%_44%_48%_18%] bg-[linear-gradient(215deg,#fff9df_0%,#fff1c7_68%,#dfb879_100%)] shadow-[inset_12px_-9px_18px_rgba(170,111,62,.16),0_18px_30px_rgba(59,36,107,.16)] sm:h-[258px]" />
 
-      <div className="absolute bottom-[30px] left-1/2 h-[192px] w-5 -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,#f4b6c8,#8a4d84)] shadow-[0_0_10px_rgba(59,36,107,.22)] sm:h-[235px]" />
+      <div className="absolute bottom-[30px] left-1/2 h-[208px] w-5 -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,#f4b6c8,#8a4d84)] shadow-[0_0_10px_rgba(59,36,107,.22)] sm:h-[250px]" />
 
-      <div className="absolute bottom-5 left-[8%] h-8 w-[84%] -rotate-[2deg] rounded-[0_0_50%_50%] bg-[linear-gradient(180deg,#9a5c3a,#6d3c28)] shadow-[0_12px_25px_rgba(59,36,107,.22)]" />
+      <div className="absolute bottom-7 left-[10%] h-7 w-[80%] -rotate-[2deg] rounded-[0_0_50%_50%] bg-[linear-gradient(180deg,#9a5c3a,#6d3c28)] shadow-[0_12px_25px_rgba(59,36,107,.22)]" />
 
-      <div className="absolute bottom-0 left-[21%] h-14 w-[58%] rounded-[50%] bg-[#6a356a] shadow-[0_10px_18px_rgba(59,36,107,.25)]" />
+      <div className="absolute bottom-1 left-[23%] h-14 w-[54%] rounded-[50%] bg-[#6a356a] shadow-[0_10px_18px_rgba(59,36,107,.25)]" />
 
       <span className="absolute bottom-[48%] left-[20%] h-[2px] w-[23%] -rotate-[7deg] rounded-full bg-[#e6c58e]/70" />
       <span className="absolute bottom-[38%] left-[17%] h-[2px] w-[26%] -rotate-[7deg] rounded-full bg-[#e6c58e]/60" />
@@ -441,7 +475,7 @@ function StoryDots({
   stories: Story[];
 }) {
   return (
-    <div className="absolute bottom-[1.5%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2">
+    <div className="absolute bottom-[4%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2">
       {stories.map((story, index) => (
         <button
           aria-label={`Mostrar ${story.title}`}
