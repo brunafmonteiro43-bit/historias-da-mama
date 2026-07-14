@@ -151,7 +151,7 @@ export function MagicBookshelf({
               fill
               priority
               sizes="(min-width: 640px) 650px, 96vw"
-             src="/icons/illustrations/magic-book.png.png"
+            src="/illustrations/magic-book.png"
             />
           </motion.div>
 
