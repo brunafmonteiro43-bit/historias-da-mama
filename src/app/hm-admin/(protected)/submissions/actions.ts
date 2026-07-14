@@ -112,6 +112,24 @@ export async function approveSubmissionAction(formData: FormData) {
     return;
   }
 
+  if (submission.submission_type === 'pdf') {
+    await supabase
+      .from('story_submissions')
+      .update({
+        reviewed_at: new Date().toISOString(),
+        status: 'approved',
+      })
+      .eq('id', id);
+
+    revalidatePath('/hm-admin/submissions');
+    revalidatePath('/hm-admin/dashboard');
+    return;
+  }
+
+  if (!submission.story_text || submission.story_text.trim().length < 80) {
+    throw new Error('Este envio não possui texto suficiente para criar um rascunho.');
+  }
+
   const authorId = await getOrCreateAuthor(supabase, submission.author_name);
   const categoryId = await getOrCreateCategory(supabase, submission.category);
   const storySlug = `${slugify(submission.title) || 'historia'}-${submission.id.slice(0, 8)}`;
@@ -217,6 +235,16 @@ export async function deleteSubmissionAction(formData: FormData) {
 
   if (!id) {
     return;
+  }
+
+  const { data: submission } = await supabase
+    .from('story_submissions')
+    .select('pdf_storage_path')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (submission?.pdf_storage_path) {
+    await supabase.storage.from('story-submissions').remove([submission.pdf_storage_path]);
   }
 
   await supabase.from('story_submissions').delete().eq('id', id);

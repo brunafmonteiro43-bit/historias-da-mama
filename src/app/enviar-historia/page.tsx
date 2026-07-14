@@ -21,7 +21,7 @@ export default function EnviarHistoriaPage() {
               Compartilhe uma aventura infantil para ajudar nossa biblioteca a crescer e inspirar mais crianças.
             </p>
             <div className="mt-6 rounded-2xl bg-white/72 p-5 text-sm font-bold leading-6 text-slate-700 ring-1 ring-white/80">
-              A história será revisada antes de aparecer na biblioteca. Capriche no título, informe a autoria e envie um texto completo.
+              A história será revisada antes de aparecer na biblioteca. Capriche no título, informe a autoria e envie o texto completo ou um PDF.
             </div>
             <Link className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 font-black text-plum shadow-sm transition hover:text-coral" href="/biblioteca">
               <BookOpenCheck className="h-5 w-5" />

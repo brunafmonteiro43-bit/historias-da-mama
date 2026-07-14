@@ -1,6 +1,8 @@
 import {
   CheckCircle2,
   Clock3,
+  Download,
+  FileText,
   FilePlus2,
   Inbox,
   Mail,
@@ -24,6 +26,7 @@ export const metadata = {
 };
 
 type SubmissionStatus = 'approved' | 'pending_review' | 'rejected';
+type SubmissionType = 'pdf' | 'text';
 
 type StorySubmission = {
   author_name: string;
@@ -32,10 +35,18 @@ type StorySubmission = {
   created_story_id: string | null;
   email: string;
   id: string;
+  pdf_file_name: string | null;
+  pdf_file_size: number | null;
+  pdf_storage_path: string | null;
   reviewed_at: string | null;
   status: SubmissionStatus;
-  story_text: string;
+  story_text: string | null;
+  submission_type: SubmissionType | null;
   title: string;
+};
+
+type StorySubmissionWithPdfUrl = StorySubmission & {
+  pdfUrl: string | null;
 };
 
 const statusContent: Record<
@@ -63,6 +74,18 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function formatFileSize(size: number | null) {
+  if (!size) {
+    return 'Tamanho não informado';
+  }
+
+  if (size < 1024 * 1024) {
+    return `${Math.max(1, Math.round(size / 1024))} KB`;
+  }
+
+  return `${(size / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
+}
+
 export default async function AdminSubmissionsPage() {
   const { supabase } = await requireAdmin();
 
@@ -85,7 +108,19 @@ export default async function AdminSubmissionsPage() {
     );
   }
 
-  const submissions = (data ?? []) as StorySubmission[];
+  const submissions = await Promise.all(
+    ((data ?? []) as StorySubmission[]).map(async (submission): Promise<StorySubmissionWithPdfUrl> => {
+      if (submission.pdf_storage_path) {
+        const { data: signedUrl } = await supabase.storage
+          .from('story-submissions')
+          .createSignedUrl(submission.pdf_storage_path, 60 * 60);
+
+        return { ...submission, pdfUrl: signedUrl?.signedUrl ?? null };
+      }
+
+      return { ...submission, pdfUrl: null };
+    }),
+  );
   const pendingCount = submissions.filter(
     (submission) => submission.status === 'pending_review',
   ).length;
@@ -108,8 +143,8 @@ export default async function AdminSubmissionsPage() {
               Histórias recebidas
             </h1>
             <p className="mt-2 max-w-3xl text-slate-600">
-              Os textos enviados pelo formulário público aparecem aqui. Aprovar
-              cria automaticamente um rascunho editável no cadastro de histórias.
+              Os textos e PDFs enviados pelo formulário público aparecem aqui. Aprovar
+              textos cria automaticamente um rascunho editável no cadastro de histórias.
             </p>
           </div>
 
@@ -152,6 +187,16 @@ export default async function AdminSubmissionsPage() {
                     >
                       {currentStatus.label}
                     </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-cream px-3 py-1 text-xs font-black uppercase tracking-[0.1em] text-plum">
+                      {submission.submission_type === 'pdf' ? (
+                        <>
+                          <FileText className="h-3.5 w-3.5" />
+                          PDF
+                        </>
+                      ) : (
+                        'Texto'
+                      )}
+                    </span>
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold text-slate-600">
@@ -172,9 +217,41 @@ export default async function AdminSubmissionsPage() {
                 </div>
               </div>
 
-              <div className="mt-5 max-h-80 overflow-y-auto whitespace-pre-wrap rounded-2xl bg-cream/65 p-5 leading-7 text-slate-700">
-                {submission.story_text}
-              </div>
+              {submission.submission_type === 'pdf' ? (
+                <div className="mt-5 flex flex-col gap-4 rounded-2xl bg-cream/65 p-5 text-slate-700 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-plum shadow-sm">
+                      <FileText className="h-6 w-6" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-black text-plum">História enviada em PDF</p>
+                      <p className="truncate text-sm font-bold text-slate-600">
+                        {submission.pdf_file_name || 'arquivo.pdf'} · {formatFileSize(submission.pdf_file_size)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {submission.pdfUrl ? (
+                    <a
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 font-black text-plum shadow-sm transition hover:text-coral"
+                      href={submission.pdfUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <Download className="h-5 w-5" />
+                      Abrir ou baixar PDF
+                    </a>
+                  ) : (
+                    <span className="rounded-full bg-rose/45 px-4 py-2 text-sm font-black text-red-800">
+                      PDF indisponível
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-5 max-h-80 overflow-y-auto whitespace-pre-wrap rounded-2xl bg-cream/65 p-5 leading-7 text-slate-700">
+                  {submission.story_text}
+                </div>
+              )}
 
               <div className="mt-5 flex flex-wrap gap-3">
                 {submission.status === 'pending_review' ? (
@@ -186,7 +263,7 @@ export default async function AdminSubmissionsPage() {
                         type="submit"
                       >
                         <FilePlus2 className="h-5 w-5" />
-                        Aprovar e criar rascunho
+                        {submission.submission_type === 'pdf' ? 'Aprovar envio' : 'Aprovar e criar rascunho'}
                       </button>
                     </form>
 

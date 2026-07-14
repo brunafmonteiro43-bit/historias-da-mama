@@ -74,6 +74,52 @@ create table if not exists public.story_pages (
   unique (story_id, page_number)
 );
 
+create table if not exists public.story_submissions (
+  id uuid primary key default gen_random_uuid(),
+  author_name text not null,
+  email text not null,
+  title text not null,
+  category text not null,
+  story_text text,
+  submission_type text not null default 'text' check (submission_type in ('text', 'pdf')),
+  pdf_storage_path text,
+  pdf_file_name text,
+  pdf_file_size integer,
+  status text not null default 'pending_review' check (status in ('pending_review', 'approved', 'rejected')),
+  created_story_id uuid references public.stories(id) on delete set null,
+  reviewed_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table public.story_submissions add column if not exists submission_type text not null default 'text';
+alter table public.story_submissions add column if not exists pdf_storage_path text;
+alter table public.story_submissions add column if not exists pdf_file_name text;
+alter table public.story_submissions add column if not exists pdf_file_size integer;
+alter table public.story_submissions alter column story_text drop not null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'story_submissions_submission_type_check'
+  ) then
+    alter table public.story_submissions
+      add constraint story_submissions_submission_type_check
+      check (submission_type in ('text', 'pdf'));
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint where conname = 'story_submissions_content_check'
+  ) then
+    alter table public.story_submissions
+      add constraint story_submissions_content_check
+      check (
+        (submission_type = 'text' and story_text is not null and char_length(trim(story_text)) >= 80 and pdf_storage_path is null)
+        or
+        (submission_type = 'pdf' and story_text is null and pdf_storage_path is not null and pdf_file_size between 1 and 10485760)
+      );
+  end if;
+end $$;
+
 create or replace function public.is_admin()
 returns boolean
 language sql
@@ -94,6 +140,7 @@ alter table public.authors enable row level security;
 alter table public.categories enable row level security;
 alter table public.stories enable row level security;
 alter table public.story_pages enable row level security;
+alter table public.story_submissions enable row level security;
 
 drop policy if exists "Admins can read admin profiles" on public.admin_profiles;
 drop policy if exists "Admins can manage admin profiles" on public.admin_profiles;
@@ -107,6 +154,8 @@ drop policy if exists "Visitors can read published stories" on public.stories;
 drop policy if exists "Admins can manage all stories" on public.stories;
 drop policy if exists "Visitors can read pages from published stories" on public.story_pages;
 drop policy if exists "Admins can manage story pages" on public.story_pages;
+drop policy if exists "Visitors can submit stories" on public.story_submissions;
+drop policy if exists "Admins can manage story submissions" on public.story_submissions;
 
 create policy "Admins can read admin profiles" on public.admin_profiles for select using (public.is_admin());
 create policy "Admins can manage admin profiles" on public.admin_profiles for all using (public.is_admin()) with check (public.is_admin());
@@ -123,6 +172,25 @@ create policy "Visitors can read pages from published stories" on public.story_p
 );
 create policy "Admins can manage story pages" on public.story_pages for all using (public.is_admin()) with check (public.is_admin());
 
+create policy "Visitors can submit stories" on public.story_submissions
+for insert with check (
+  status = 'pending_review'
+  and reviewed_at is null
+  and created_story_id is null
+  and char_length(trim(author_name)) >= 2
+  and position('@' in email) > 1
+  and char_length(trim(title)) >= 3
+  and char_length(trim(category)) >= 2
+  and (
+    (submission_type = 'text' and story_text is not null and char_length(trim(story_text)) >= 80 and pdf_storage_path is null)
+    or
+    (submission_type = 'pdf' and story_text is null and pdf_storage_path is not null and pdf_file_size between 1 and 10485760)
+  )
+);
+
+create policy "Admins can manage story submissions" on public.story_submissions
+for all using (public.is_admin()) with check (public.is_admin());
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values
   ('story-covers', 'story-covers', true, 8388608, array['image/png', 'image/jpeg', 'image/webp']),
@@ -133,10 +201,21 @@ on conflict (id) do update set
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values
+  ('story-submissions', 'story-submissions', false, 10485760, array['application/pdf'])
+on conflict (id) do update set
+  public = false,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
 drop policy if exists "Public can read story files" on storage.objects;
 drop policy if exists "Admins can upload story files" on storage.objects;
 drop policy if exists "Admins can update story files" on storage.objects;
 drop policy if exists "Admins can delete story files" on storage.objects;
+drop policy if exists "Visitors can upload submitted PDFs" on storage.objects;
+drop policy if exists "Admins can read submitted PDFs" on storage.objects;
+drop policy if exists "Admins can delete submitted PDFs" on storage.objects;
 
 create policy "Public can read story files" on storage.objects
 for select using (bucket_id in ('story-covers', 'story-pages', 'story-pdfs'));
@@ -150,6 +229,15 @@ with check (bucket_id in ('story-covers', 'story-pages', 'story-pdfs') and publi
 
 create policy "Admins can delete story files" on storage.objects
 for delete using (bucket_id in ('story-covers', 'story-pages', 'story-pdfs') and public.is_admin());
+
+create policy "Visitors can upload submitted PDFs" on storage.objects
+for insert with check (bucket_id = 'story-submissions');
+
+create policy "Admins can read submitted PDFs" on storage.objects
+for select using (bucket_id = 'story-submissions' and public.is_admin());
+
+create policy "Admins can delete submitted PDFs" on storage.objects
+for delete using (bucket_id = 'story-submissions' and public.is_admin());
 
 insert into public.categories (name, slug, description, color, accent_color)
 values

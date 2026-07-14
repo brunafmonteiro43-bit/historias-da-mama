@@ -75,12 +75,11 @@ export default function PoliticaDePrivacidadePage() {
           <li>e-mail para retorno;</li>
           <li>título da história;</li>
           <li>categoria sugerida;</li>
-          <li>texto da história.</li>
+          <li>texto da história ou arquivo PDF da história.</li>
         </ul>
         <p>
-          No código analisado, esse formulário não possui campo de upload de imagens, PDFs ou documentos e não foi
-          confirmada integração de armazenamento ou envio desses dados para uma base externa. TODO: confirmar a política
-          operacional real para recebimento, análise e conservação das histórias enviadas.
+          Arquivos PDF enviados pelo formulário são armazenados em área privada para revisão administrativa e não ficam
+          disponíveis publicamente enquanto estiverem pendentes de análise.
         </p>
 
         <h3 className="pt-3 text-lg font-black text-plum">3.3. Dados de pessoas autorizadas</h3>
@@ -170,8 +169,8 @@ export default function PoliticaDePrivacidadePage() {
           segurança, cumprir obrigações legais ou exercer direitos.
         </p>
         <p>
-          TODO: definir a política interna real para prazo de conservação de materiais enviados e não publicados, caso o
-          fluxo de envio passe a armazenar dados.
+          Materiais enviados para revisão, incluindo PDFs, podem ser mantidos enquanto forem necessários para análise,
+          resposta ao remetente, aprovação, recusa, prevenção de abuso ou cumprimento de obrigações legais.
         </p>
       </InstitutionalSection>
 
